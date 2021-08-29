@@ -21,6 +21,7 @@ read -rsn1 -p "Waiting..."
 OFFSET=2048
 EFI_SIZE=267
 PART_START=$((OFFSET*EFI_SIZE + OFFSET))
+BTR_PARTITION="${TARGET_DEVICE}p2"
 
 parted --script --align optimal "${TARGET_DEVICE}" \
     mklabel gpt \
@@ -32,6 +33,6 @@ parted --script --align optimal "${TARGET_DEVICE}" \
 echo "Disk partitioned successfully! Formatting data partition..."
 echo
 
-mkfs.btrfs -n 32k -L ArchRoot "${TARGET_DEVICE}p2"
+mkfs.btrfs -n 32k -L ArchRoot "${BTR_PARTITION}"
 
 . /_subvol.sh
