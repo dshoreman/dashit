@@ -1,5 +1,7 @@
 # shellcheck source=_disk.sh
 source "${SCRIPT_ROOT}/_disk.sh"
+# shellcheck source=_system.sh
+source "${SCRIPT_ROOT}/_system.sh"
 
 welcome_screen() {
     echo
@@ -54,8 +56,4 @@ process_system_info() {
 
 get_cpu_value() {
     grep "$1" <<< "$cpuOutput" | cut -d':' -f2 | awk '{$1=$1;print}'
-}
-
-install_arch() {
-    unavailable
 }
