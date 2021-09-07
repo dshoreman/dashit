@@ -1,3 +1,6 @@
+# shellcheck source=_disk.sh
+source "${SCRIPT_ROOT}/_disk.sh"
+
 welcome_screen() {
     echo
     echo "Welcome to Dashit!"
@@ -41,10 +44,6 @@ process_system_info() {
     CPU_ARCH="$(lscpu | grep 'Architecture' | cut -d':' -f2)"
     CPU_TYPE="$(lscpu | grep 'Vendor ID' | cut -d':' -f2)"
     CPU_MODEL="$(lscpu | grep 'Model name' | cut -d':' -f2)"
-}
-
-provision_disk() {
-    unavailable
 }
 
 install_arch() {
