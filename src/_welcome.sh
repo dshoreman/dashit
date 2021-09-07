@@ -35,18 +35,25 @@ print_menu() {
 }
 
 print_system_info() {
-    local CPU_ARCH CPU_MODEL CPU_TYPE
+    local architecture cpuModel cpuType
 
     process_system_info
     echo
-    echo "Current System: ${CPU_TYPE} (${CPU_ARCH})"
-    echo "${CPU_MODEL}"
+    echo "Current System: ${cpuType} (${architecture})"
+    echo "${cpuModel}"
 }
 
 process_system_info() {
-    CPU_ARCH="$(lscpu | grep 'Architecture' | cut -d':' -f2)"
-    CPU_TYPE="$(lscpu | grep 'Vendor ID' | cut -d':' -f2)"
-    CPU_MODEL="$(lscpu | grep 'Model name' | cut -d':' -f2)"
+    local cpuOutput
+    cpuOutput="$(lscpu)"
+
+    architecture="$(get_cpu_value 'Architecture')"
+    cpuModel="$(get_cpu_value 'Model name')"
+    cpuType="$(get_cpu_value 'Vendor ID')"
+}
+
+get_cpu_value() {
+    grep "$1" <<< "$cpuOutput" | cut -d':' -f2 | awk '{$1=$1;print}'
 }
 
 install_arch() {
