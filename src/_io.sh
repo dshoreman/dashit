@@ -7,3 +7,8 @@ log() {
         echo -e " \e[1;33m[DEBUG]\e[0m ${*}" >&2
     fi
 }
+
+unavailable() {
+    err "This option is currently unavailable"
+    exit 2
+}
