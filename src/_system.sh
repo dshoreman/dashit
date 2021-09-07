@@ -1,5 +1,7 @@
 install_arch() {
     unavailable
+
+    mount_subvolumes
 }
 
 prepare_host() {
