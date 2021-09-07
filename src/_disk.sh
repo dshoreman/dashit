@@ -11,20 +11,20 @@ set_target_disk() {
         echo "Missing required target device. Found the following devices:"
         lsblk -nado NAME,SIZE,PTTYPE,MODEL
 
-        read -rp "Enter target device name: " TARGET_DEVICE
+        read -rp "Enter target device name: " targetDevice
     else
-        TARGET_DEVICE="$1"
+        targetDevice="$1"
     fi
 }
 
 partition_disk() {
     local efiSize=267 offset=2048 dataStart=$((offset*efiSize + offset))
-    dataPartition="${TARGET_DEVICE}p2"
+    dataPartition="${targetDevice}p2"
 
     print_partition_layout
     prompt_before_erase
 
-    parted --script --align optimal "${TARGET_DEVICE}" \
+    parted --script --align optimal "${targetDevice}" \
         mklabel gpt \
         mkpart "efi" fat32 ${offset}s $((dataStart-1))s \
         mkpart "arch" btrfs ${dataStart}s 100% \
@@ -36,14 +36,14 @@ partition_disk() {
 }
 
 print_partition_layout() {
-    echo "Current partition layout for ${TARGET_DEVICE}:"
+    echo "Current partition layout for ${targetDevice}:"
     echo
-    fdisk -l "${TARGET_DEVICE}"
+    fdisk -l "${targetDevice}"
 }
 
 prompt_before_erase() {
     echo "ALL DATA WILL BE ERASED! IF THIS IS NOT THE RIGHT DISK, HIT CTRL-C NOW!"
-    echo "To continue partitioning ${TARGET_DEVICE}, press any other key."
+    echo "To continue partitioning ${targetDevice}, press any other key."
     echo
     read -rsn1 -p "Waiting..."
     echo
