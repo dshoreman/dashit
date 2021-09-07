@@ -12,6 +12,28 @@ prepare_host() {
     update_mirrorlist
 }
 
+get_cpu_value() {
+    grep "$1" <<< "$cpuOutput" | cut -d':' -f2 | awk '{$1=$1;print}'
+}
+
+print_system_info() {
+    local architecture cpuModel cpuType
+
+    process_system_info
+    echo
+    echo "Current System: ${cpuType} (${architecture})"
+    echo "${cpuModel}"
+}
+
+process_system_info() {
+    local cpuOutput
+    cpuOutput="$(lscpu)"
+
+    architecture="$(get_cpu_value 'Architecture')"
+    cpuModel="$(get_cpu_value 'Model name')"
+    cpuType="$(get_cpu_value 'Vendor ID')"
+}
+
 install_arch_scripts() {
     # If it's a manjaro install...
     # pacman-key --populate archlinux     # May or may not need this, we'll see.
