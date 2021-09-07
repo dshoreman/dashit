@@ -17,7 +17,7 @@ readonly _VERSION="0.0.0"
 usage() {
     echo
     echo "Usage:"
-    echo "  dashit [OPTION]"
+    echo "  dashit [OPTION] <TARGET>"
     echo
     echo "General Options:"
     echo " -h, --help           Display this help and exit"
@@ -32,7 +32,7 @@ main() {
     check_bash_version
     parse_opts "$@"
 
-    welcome_screen
+    welcome_screen "$@"
 }
 
 check_bash_version() {

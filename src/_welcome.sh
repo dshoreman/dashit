@@ -10,7 +10,7 @@ welcome_screen() {
 
     case "$choice" in
         1)
-            provision_disk ;;
+            provision_disk "$@" ;;
         2)
             install_arch ;;
         q)
