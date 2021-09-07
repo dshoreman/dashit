@@ -12,6 +12,8 @@ welcome_screen() {
         1)
             provision_disk "$@" ;;
         2)
+            provision_partition "$@" ;;
+        3)
             install_arch ;;
         q)
             exit 0
@@ -22,8 +24,9 @@ print_menu() {
     echo
     echo "What to do?"
     echo
-    echo " [ 1] Provision disk"
-    echo " [ 2] Install Arch Linux"
+    echo " [ 1] Partition and format disk"
+    echo " [ 2] Create btrfs subvolumes"
+    echo " [ 3] Install Arch Linux"
     echo " [ q] Quit"
     echo
 

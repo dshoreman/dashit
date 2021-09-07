@@ -57,3 +57,47 @@ format_partition() {
     echo
     mkfs.btrfs -n 32k -L ArchRoot "${dataPartition}"
 }
+
+provision_partition() {
+    set_target_disk "$@"
+    set_mountpoint
+
+    unavailable
+    mount_disk && create_subvolumes
+    unmount_disk
+}
+
+set_mountpoint() {
+    rootMount="/mnt"
+    log "Checking if /mnt is empty..."
+
+    while [ ! -d "${rootMount}" ] || [ -n "$(ls -A "${rootMount}")" ]; do
+        err "Current mount '${rootMount}' is not empty!"
+        read -rp "Enter new mountpoint: " rootMount
+
+        [ -d "${rootMount}" ] || mkdir -vp "${rootMount}"
+        log "Checking if ${rootMount} is empty..."
+    done
+
+    echo "Mountpoint set to ${rootMount}"
+}
+
+create_subvolumes() {
+    for subvolume in @ @home @varlog @vbox @snapshots; do
+        echo "Creating '${subvolume}' subvolume..."
+        btrfs subvolume create "${rootMount}/${subvolume}"
+    done
+
+    echo "Subvolumes created!"
+    echo
+}
+
+mount_disk() {
+    echo "Mounting ${targetDevice} at ${rootMount} to prep subvolumes..."
+    mount -t btrfs "${dataPartition}" "${rootMount}"
+}
+
+unmount_disk() {
+    echo -n "Unmounting ${rootMount}..."
+    umount "${rootMount}" && echo "Done!"
+}
