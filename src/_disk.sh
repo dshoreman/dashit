@@ -8,10 +8,13 @@ provision_disk() {
 
 set_target_disk() {
     if [ $# -eq 0 ]; then
-        echo "Missing required target device. Found the following devices:"
-        lsblk -nado NAME,SIZE,PTTYPE,MODEL
+        err "Missing required target device."
+        echo
+        echo "Found the following devices:"
+        lsblk -nado PATH,SIZE,PTTYPE,MODEL
+        echo
 
-        read -rp "Enter target device name: " targetDevice
+        read -rp "Enter target device path: " targetDevice
     else
         targetDevice="$1"
     fi
