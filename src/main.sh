@@ -6,6 +6,8 @@ SCRIPT_ROOT="$(cd "$(dirname "$0")" > /dev/null 2>&1; pwd -P)"
 
 # shellcheck source=_io.sh
 source "${SCRIPT_ROOT}/_io.sh"
+# shellcheck source=_welcome.sh
+source "${SCRIPT_ROOT}/_welcome.sh"
 
 trap 'err "Unexpected error; aborting." && exit 1' ERR
 trap 'err "Aborted by user." && exit 1' SIGINT
@@ -29,6 +31,8 @@ main() {
 
     check_bash_version
     parse_opts "$@"
+
+    welcome_screen
 }
 
 check_bash_version() {
