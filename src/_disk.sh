@@ -99,18 +99,37 @@ mount_disk() {
 
 mount_subvolumes() {
     # First, mount root subvolume named simply '@'
-    mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt
+    if $DRY_RUN; then
+        log "mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt"
+    else
+        mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt
+    fi
 
     # Create dirs for and mount ESP and other partitions
-    [ -d /mnt/efi ] || mkdir /mnt/efi
-    mount /dev/nvme0n1p1 /mnt/efi
+    if $DRY_RUN; then
+        [ -d /mnt/efi ] || log "mkdir /mnt/efi"
+        log "mount /dev/nvme0n1p1 /mnt/efi"
+    else
+        [ -d /mnt/efi ] || mkdir /mnt/efi
+        mount /dev/nvme0n1p1 /mnt/efi
+    fi
 
-    [ -d /mnt/home ] || mkdir /mnt/home
-    [ -d /mnt/var/log ] || mkdir -p /mnt/var/log
+    if $DRY_RUN; then
+        [ -d /mnt/home ] || log "mkdir /mnt/home"
+        [ -d /mnt/var/log ] || log "mkdir -p /mnt/var/log"
+    else
+        [ -d /mnt/home ] || mkdir /mnt/home
+        [ -d /mnt/var/log ] || mkdir -p /mnt/var/log
+    fi
 
     # Now mount other essential system subvolumes
-    mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home
-    mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@varlog /dev/nvme0n1p2 /mnt/var/log
+    if $DRY_RUN; then
+        log "mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home"
+        log "mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@varlog /dev/nvme0n1p2 /mnt/var/log"
+    else
+        mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home
+        mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@varlog /dev/nvme0n1p2 /mnt/var/log
+    fi
 }
 
 unmount_disk() {

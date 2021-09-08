@@ -19,8 +19,6 @@ install_arch() {
 }
 
 prepare_host() {
-    unavailable
-
     update_host_packages
     install_arch_scripts
     update_mirrorlist
@@ -31,10 +29,13 @@ get_cpu_value() {
 }
 
 perform_install() {
-    unavailable
     mount_subvolumes
 
-    pacstrap /mnt base linux linux-firmware "$cpuPackage"
+    if $DRY_RUN; then
+        log "pacstrap /mnt base linux linux-firmware \"$cpuPackage\""
+    else
+        pacstrap /mnt base linux linux-firmware "$cpuPackage"
+    fi
 }
 
 print_install_menu() {
@@ -93,17 +94,30 @@ install_arch_scripts() {
     # pacman-key --populate archlinux     # May or may not need this, we'll see.
 
     echo "Downloading Arch install scripts..."
-    pacman -Syy arch-install-scripts     # Installs packages like pacstrap, arch-chroot etc
+    if $DRY_RUN; then
+        log "pacman -Syy arch-install-scripts"
+    else
+        pacman -Syy arch-install-scripts     # Installs packages like pacstrap, arch-chroot etc
+    fi
 }
 
 update_host_packages() {
     echo "Updating host system..."
-    pacman -Syyu
+    if $DRY_RUN; then
+        log "pacman -Syyu"
+    else
+        pacman -Syyu
+    fi
 }
 
 update_mirrorlist() {
     local filters="country=GB&protocol=https&ip_version=4&use_mirror_status=on"
+    local mirrorlistUrl="https://archlinux.org/mirrorlist/?${filters}"
 
     echo "Fetching filtered mirrorlist..."
-    curl "https://archlinux.org/mirrorlist/?${filters}" > /etc/pacman.d/mirrorlist
+    if $DRY_RUN; then
+        log "curl \"${mirrorlistUrl}\" > /etc/pacman.d/mirrorlist"
+    else
+        curl "${mirrorlistUrl}" > /etc/pacman.d/mirrorlist
+    fi
 }

@@ -20,6 +20,7 @@ usage() {
     echo "  dashit [OPTION] <TARGET>"
     echo
     echo "General Options:"
+    echo " -D, --dry-run        Don't make any changes (implies --verbose)"
     echo " -h, --help           Display this help and exit"
     echo " -v, --verbose        Enable verbose output for debugging"
     echo " -V, --version        Output version information and exit"
@@ -27,7 +28,7 @@ usage() {
 }
 
 main() {
-    local debug=false
+    local debug=false DRY_RUN=false
 
     check_bash_version
     parse_opts "$@"
@@ -52,8 +53,8 @@ check_bash_version() {
 }
 
 parse_opts() {
-    local -r OPTS=hv
-    local -r LONG=help,verbose
+    local -r OPTS=Dhv
+    local -r LONG=dry-run,help,verbose
 
     # shellcheck disable=SC2251
     ! parsed=$(getopt -o "$OPTS" -l "$LONG" -n "$0" -- "$@")
@@ -65,6 +66,9 @@ parse_opts() {
 
     while true; do
         case "$1" in
+            -D|--dry-run)
+                debug=true; DRY_RUN=true; shift
+                log "Dry run enabled, commands won't actually run." ;;
             -h|--help)
                 usage && exit 0 ;;
             -v|--verbose)
