@@ -102,6 +102,8 @@ update_host_packages() {
 }
 
 update_mirrorlist() {
+    local filters="country=GB&protocol=https&ip_version=4&use_mirror_status=on"
+
     echo "Fetching filtered mirrorlist..."
-    curl "https://archlinux.org/mirrorlist/?country=GB&protocol=https&ip_version=4&use_mirror_status=on" > /etc/pacman.d/mirrorlist
+    curl "https://archlinux.org/mirrorlist/?${filters}" > /etc/pacman.d/mirrorlist
 }
