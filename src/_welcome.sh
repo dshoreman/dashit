@@ -32,6 +32,7 @@ print_menu() {
     echo " [ 2] Create btrfs subvolumes"
     echo " [ 3] Prepare host system"
     echo " [ 4] Install Arch Linux"
+    echo
     echo " [ q] Quit"
     echo
 

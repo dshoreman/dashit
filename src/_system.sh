@@ -7,7 +7,12 @@ install_arch() {
                 set_cpu_package ;;
             2)
                 perform_install ;;
+            b)
+                break ;;
+            q)
+                exit 0 ;;
             *)
+                err "Invalid option"
                 ;;
         esac
     done
@@ -33,8 +38,12 @@ perform_install() {
 }
 
 print_install_menu() {
+    echo
     echo " [ 1] Set microcode package (${cpuPackage:-not set})"
     echo " [ 2] Perform install"
+    echo
+    echo " [ b] Back to main menu"
+    echo " [ q] Quit"
     echo
 
     read -rn1 -p "Select option: " choice
