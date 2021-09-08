@@ -1,7 +1,6 @@
 provision_disk() {
     set_target_disk "$@"
 
-    unavailable
     partition_disk
     format_partition
 }
@@ -27,12 +26,21 @@ partition_disk() {
     print_partition_layout
     prompt_before_erase
 
-    parted --script --align optimal "${targetDevice}" \
-        mklabel gpt \
-        mkpart "efi" fat32 ${offset}s $((dataStart-1))s \
-        mkpart "arch" btrfs ${dataStart}s 100% \
-        set 1 esp on \
-        print
+    if $DRY_RUN; then
+        log "parted --script --align optimal \"${targetDevice}\" \\"
+        log "    mklabel gpt \\"
+        log "    mkpart \"efi\" fat32 ${offset}s $((dataStart-1))s \\"
+        log "    mkpart \"arch\" btrfs ${dataStart}s 100% \\"
+        log "    set 1 esp on \\"
+        log "    print"
+    else
+        parted --script --align optimal "${targetDevice}" \
+            mklabel gpt \
+            mkpart "efi" fat32 ${offset}s $((dataStart-1))s \
+            mkpart "arch" btrfs ${dataStart}s 100% \
+            set 1 esp on \
+            print
+    fi
 
     echo "Disk partitioned successfully!"
     echo
@@ -55,7 +63,11 @@ prompt_before_erase() {
 format_partition() {
     echo "Formatting system data partition..."
     echo
-    mkfs.btrfs -n 32k -L ArchRoot "${dataPartition}"
+    if $DRY_RUN; then
+        log "mkfs.btrfs -n 32k -L ArchRoot \"${dataPartition}\""
+    else
+        mkfs.btrfs -n 32k -L ArchRoot "${dataPartition}"
+    fi
 }
 
 provision_partition() {
