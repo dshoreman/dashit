@@ -17,9 +17,10 @@ readonly _VERSION="0.0.0"
 usage() {
     echo
     echo "Usage:"
-    echo "  dashit [OPTION] <TARGET>"
+    echo "  dashit [OPTION]"
     echo
     echo "General Options:"
+    echo " -d, --device=TARGET  Target device to provision for Arch"
     echo " -D, --dry-run        Don't make any changes (implies --verbose)"
     echo " -h, --help           Display this help and exit"
     echo " -v, --verbose        Enable verbose output for debugging"
@@ -53,8 +54,8 @@ check_bash_version() {
 }
 
 parse_opts() {
-    local -r OPTS=Dhv
-    local -r LONG=dry-run,help,verbose
+    local -r OPTS=d:Dhv
+    local -r LONG=device,dry-run,help,verbose
 
     # shellcheck disable=SC2251
     ! parsed=$(getopt -o "$OPTS" -l "$LONG" -n "$0" -- "$@")
@@ -66,6 +67,8 @@ parse_opts() {
 
     while true; do
         case "$1" in
+            -d|--device)
+                TARGET_DEVICE=${2//=}; shift 2 ;;
             -D|--dry-run)
                 debug=true; DRY_RUN=true; shift
                 log "Dry run enabled, commands won't actually run." ;;

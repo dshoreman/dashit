@@ -6,17 +6,19 @@ provision_disk() {
 }
 
 set_target_disk() {
-    if [ $# -eq 0 ]; then
-        err "Missing required target device."
+    if [ -z "$targetDevice" ] && [ -b "$TARGET_DEVICE" ]; then
+        log "Setting target device from option to ${TARGET_DEVICE}"
+        targetDevice="${TARGET_DEVICE}"
+    fi
+
+    while [ ! -b "$targetDevice" ]; do
+        err "Missing target device or device is not a block target"
         echo
         echo "Found the following devices:"
         lsblk -nado PATH,SIZE,PTTYPE,MODEL
         echo
-
         read -rp "Enter target device path: " targetDevice
-    else
-        targetDevice="$1"
-    fi
+    done
 }
 
 partition_disk() {
