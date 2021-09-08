@@ -71,16 +71,16 @@ process_system_info() {
 set_cpu_package() {
     local cpuAnswer
 
-    while [ -z "$cpuPackage" ]; do
+    while [ -z "$cpuAnswer" ]; do
         read -rp "What type of CPU is in the target system? " cpuAnswer
 
-        if [ "${cpuAnswer,,}" = "amd" ]; then
-            cpuPackage=amd-ucode
-        elif [ "${cpuAnswer,,}" = "intel" ]; then
-            cpuPackage=intel-ucode
-        else
-            echo "Invalid CPU type. Enter 'AMD' or 'Intel'."
-        fi
+        case "${cpuAnswer,,}" in
+            amd|intel)
+                cpuPackage="${cpuAnswer,,}-ucode" ;;
+            *)
+                echo "Invalid CPU type. Enter 'AMD' or 'Intel'."
+                cpuAnswer=
+    esac
     done
 }
 
