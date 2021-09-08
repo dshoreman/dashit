@@ -32,7 +32,9 @@ main() {
     check_bash_version
     parse_opts "$@"
 
-    welcome_screen "$@"
+    while true; do
+        welcome_screen "$@"
+    done
 }
 
 check_bash_version() {

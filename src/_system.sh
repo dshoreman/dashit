@@ -1,14 +1,16 @@
 install_arch() {
-    print_install_menu
+    while true; do
+        print_install_menu
 
-    case "$choice" in
-        1)
-            set_cpu_package ;;
-        2)
-            perform_install ;;
-        *)
-            ;;
-    esac
+        case "$choice" in
+            1)
+                set_cpu_package ;;
+            2)
+                perform_install ;;
+            *)
+                ;;
+        esac
+    done
 }
 
 prepare_host() {
