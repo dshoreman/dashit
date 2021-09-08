@@ -62,7 +62,6 @@ provision_partition() {
     set_target_disk "$@"
     set_mountpoint
 
-    unavailable
     mount_disk && create_subvolumes
     unmount_disk
 }
@@ -85,7 +84,11 @@ set_mountpoint() {
 create_subvolumes() {
     for subvolume in @ @home @varlog @vbox @snapshots; do
         echo "Creating '${subvolume}' subvolume..."
-        btrfs subvolume create "${rootMount}/${subvolume}"
+        if $DRY_RUN; then
+            log "btrfs subvolume create \"${rootMount}/${subvolume}\""
+        else
+            btrfs subvolume create "${rootMount}/${subvolume}"
+        fi
     done
 
     echo "Subvolumes created!"
@@ -94,7 +97,11 @@ create_subvolumes() {
 
 mount_disk() {
     echo "Mounting ${targetDevice} at ${rootMount} to prep subvolumes..."
-    mount -t btrfs "${dataPartition}" "${rootMount}"
+    if $DRY_RUN; then
+        log "mount -t btrfs \"${dataPartition}\" \"${rootMount}\""
+    else
+        mount -t btrfs "${dataPartition}" "${rootMount}"
+    fi
 }
 
 mount_subvolumes() {
@@ -134,5 +141,9 @@ mount_subvolumes() {
 
 unmount_disk() {
     echo -n "Unmounting ${rootMount}..."
-    umount "${rootMount}" && echo "Done!"
+    if $DRY_RUN; then
+        log "umount \"${rootMount}\"" && echo "Done!"
+    else
+        umount "${rootMount}" && echo "Done!"
+    fi
 }
