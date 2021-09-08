@@ -69,10 +69,11 @@ process_system_info() {
 }
 
 set_cpu_package() {
-    local cpuAnswer selected="${cpuPackage%%-*}"
+    local cpuAnswer selected="${cpuPackage:-none}"
+    selected="${selected%%-*}"
 
     while [ -z "$cpuAnswer" ]; do
-        read -rp "What type of CPU is in the target system? [${selected:-none}] " cpuAnswer
+        read -rp "What type of CPU is in the target system? [${selected}] " cpuAnswer
 
         case "${cpuAnswer,,}" in
             amd|intel)
@@ -80,7 +81,7 @@ set_cpu_package() {
             none)
                 cpuPackage="" ;;
             "")
-                cpuAnswer="${selected:-none}" ;;
+                cpuAnswer="$selected" ;;
             *)
                 echo "Invalid CPU type. Enter 'AMD', 'Intel' or 'none'."
                 cpuAnswer=
