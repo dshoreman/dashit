@@ -67,6 +67,7 @@ provision_partition() {
 }
 
 set_mountpoint() {
+    local createdInDryrun=false
     rootMount="/mnt"
     log "Checking if /mnt is empty..."
 
@@ -74,11 +75,22 @@ set_mountpoint() {
         err "Current mount '${rootMount}' is not empty!"
         read -rp "Enter new mountpoint: " rootMount
 
-        [ -d "${rootMount}" ] || mkdir -vp "${rootMount}"
+        if $DRY_RUN; then
+            if [ ! -d "${rootMount}" ]; then
+                log "Temporarily creating mountpoint..."
+                mkdir -vp "${rootMount}" && createdInDryrun=true
+            fi
+        else
+            [ -d "${rootMount}" ] || mkdir -vp "${rootMount}"
+        fi
         log "Checking if ${rootMount} is empty..."
     done
 
     echo "Mountpoint set to ${rootMount}"
+    if $createdInDryrun; then
+        log "Cleaning up temporary mountpoint"
+        rm -vd "${rootMount}"
+    fi
 }
 
 create_subvolumes() {
