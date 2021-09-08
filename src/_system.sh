@@ -83,7 +83,7 @@ set_cpu_package() {
             "")
                 cpuAnswer="$selected" ;;
             *)
-                echo "Invalid CPU type. Enter 'AMD', 'Intel' or 'none'."
+                err "Invalid CPU type '${cpuAnswer,,}'. Enter 'AMD', 'Intel' or 'none'."
                 cpuAnswer=
     esac
     done
