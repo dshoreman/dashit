@@ -39,7 +39,7 @@ perform_install() {
 
 print_install_menu() {
     echo
-    echo " [ 1] Set microcode package (${cpuPackage:-not set})"
+    echo " [ 1] Set microcode package (${cpuPackage:-none})"
     echo " [ 2] Perform install"
     echo
     echo " [ b] Back to main menu"
@@ -72,13 +72,15 @@ set_cpu_package() {
     local cpuAnswer
 
     while [ -z "$cpuAnswer" ]; do
-        read -rp "What type of CPU is in the target system? " cpuAnswer
+        read -rp "What type of CPU is in the target system? [none] " cpuAnswer
 
         case "${cpuAnswer,,}" in
             amd|intel)
                 cpuPackage="${cpuAnswer,,}-ucode" ;;
+            none|"")
+                cpuAnswer="none"; cpuPackage="" ;;
             *)
-                echo "Invalid CPU type. Enter 'AMD' or 'Intel'."
+                echo "Invalid CPU type. Enter 'AMD', 'Intel' or 'none'."
                 cpuAnswer=
     esac
     done
