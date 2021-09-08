@@ -1,7 +1,14 @@
 install_arch() {
-    unavailable
+    print_install_menu
 
-    mount_subvolumes
+    case "$choice" in
+        1)
+            set_cpu_package ;;
+        2)
+            perform_install ;;
+        *)
+            ;;
+    esac
 }
 
 prepare_host() {
@@ -14,6 +21,22 @@ prepare_host() {
 
 get_cpu_value() {
     grep "$1" <<< "$cpuOutput" | cut -d':' -f2 | awk '{$1=$1;print}'
+}
+
+perform_install() {
+    unavailable
+    mount_subvolumes
+
+    pacstrap /mnt base linux linux-firmware "$cpuPackage"
+}
+
+print_install_menu() {
+    echo " [ 1] Set microcode package (${cpuPackage:-not set})"
+    echo " [ 2] Perform install"
+    echo
+
+    read -rn1 -p "Select option: " choice
+    echo
 }
 
 print_system_info() {
@@ -32,6 +55,22 @@ process_system_info() {
     architecture="$(get_cpu_value 'Architecture')"
     cpuModel="$(get_cpu_value 'Model name')"
     cpuType="$(get_cpu_value 'Vendor ID')"
+}
+
+set_cpu_package() {
+    local cpuAnswer
+
+    while [ -z "$cpuPackage" ]; do
+        read -rp "What type of CPU is in the target system? " cpuAnswer
+
+        if [ "${cpuAnswer,,}" = "amd" ]; then
+            cpuPackage=amd-ucode
+        elif [ "${cpuAnswer,,}" = "intel" ]; then
+            cpuPackage=intel-ucode
+        else
+            echo "Invalid CPU type. Enter 'AMD' or 'Intel'."
+        fi
+    done
 }
 
 install_arch_scripts() {
