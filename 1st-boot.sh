@@ -19,8 +19,6 @@ read -rsn1 -p $'Press any key to continue or Ctrl+C to exit.\n'
 
 cd "${0%/*}/rootscripts"
 
-. set-console-font.sh
-. set-locale.sh
 . configure-network.sh
 . timezone-setup.sh
 . create-user.sh

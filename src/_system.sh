@@ -47,11 +47,42 @@ perform_install() {
         pacstrap /mnt base linux linux-firmware "$cpuPackage"
     fi
 
+    post_install
+
     echo
     echo "Install complete!"
     echo
     read -rsn1 -p "Press any key to continue..."
     echo
+}
+
+post_install() {
+    set_console_font
+    set_locale
+}
+
+set_console_font() {
+    echo "Setting console font..."
+    if $DRY_RUN; then
+        log "setfont Lat2-Terminus16"
+        log "echo \"FONT=Lat2-Terminus16\" > \'${rootMount}/etc/vconsole.conf\""
+    else
+        setfont Lat2-Terminus16
+        echo "FONT=Lat2-Terminus16" > "${rootMount}/etc/vconsole.conf"
+    fi
+}
+
+set_locale() {
+    echo "Setting locale..."
+    if $DRY_RUN; then
+        log "sed -ie 's/^#en_GB/en_GB/g' ${rootMount}/etc/locale.gen"
+        log "arch-chroot ${rootMount} locale-gen"
+        log "echo \"LANG=en_GB.UTF-8\" > ${rootMount}/etc/locale.conf"
+    else
+        sed -ie 's/^#en_GB/en_GB/g' "${rootMount}/etc/locale.gen"
+        arch-chroot ${rootMount} locale-gen
+        echo "LANG=en_GB.UTF-8" > "${rootMount}/etc/locale.conf"
+    fi
 }
 
 print_install_menu() {
