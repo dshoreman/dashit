@@ -6,6 +6,9 @@ provision_disk() {
 }
 
 set_target_disk() {
+    if $debug && [ -b "$targetDevice" ]; then
+        log "Target disk already set to ${targetDevice}"
+    fi
     if [ -z "$targetDevice" ] && [ -b "$TARGET_DEVICE" ]; then
         log "Setting target device from option to ${TARGET_DEVICE}"
         targetDevice="${TARGET_DEVICE}"
@@ -49,9 +52,11 @@ partition_disk() {
 }
 
 print_partition_layout() {
+    echo
     echo "Current partition layout for ${targetDevice}:"
     echo
     fdisk -l "${targetDevice}"
+    echo
 }
 
 prompt_before_erase() {
