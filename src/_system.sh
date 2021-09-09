@@ -37,14 +37,20 @@ get_cpu_value() {
 }
 
 perform_install() {
+    local packages=(base linux linux-firmware)
+
     set_target_disk
     set_mountpoint
     mount_subvolumes
 
+    if $cpuPackage; then
+        packages+=("$cpuPackage")
+    fi
+
     if $DRY_RUN; then
-        log "pacstrap /mnt base linux linux-firmware \"$cpuPackage\""
+        log "pacstrap /mnt ${packages[*]}"
     else
-        pacstrap /mnt base linux linux-firmware "$cpuPackage"
+        pacstrap /mnt "${packages[@]}"
     fi
 
     post_install
