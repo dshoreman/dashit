@@ -158,7 +158,8 @@ mount_disk() {
 }
 
 mount_subvolumes() {
-    local m="${rootMount}" efiPath="${m}/efi" homePath="${m}/home" logPath="${m}/var/log"
+    local m="${rootMount}"
+    local efiPath="${m}/efi" homePath="${m}/home" logPath="${m}/var/log"
     local mountString="noatime,compress-force=zstd:5,space_cache=v2,subvol="
 
     # First, mount root subvolume named simply '@'
@@ -170,19 +171,19 @@ mount_subvolumes() {
 
     # Create dirs for and mount ESP and other partitions
     if $DRY_RUN; then
-        [ -d /mnt/efi ] || log "mkdir \"${efiPath}\""
+        [ -d "$efiPath" ] || log "mkdir \"${efiPath}\""
         log "mount \"$efiPartition\" \"${efiPath}\""
     else
-        [ -d /mnt/efi ] || mkdir "${efiPath}"
+        [ -d "$efiPath" ] || mkdir "${efiPath}"
         mount "$efiPartition" "${efiPath}"
     fi
 
     if $DRY_RUN; then
-        [ -d /mnt/home ] || log "mkdir \"${homePath}\""
-        [ -d /mnt/var/log ] || log "mkdir -p \"${logPath}\""
+        [ -d "$homePath" ] || log "mkdir \"${homePath}\""
+        [ -d "$logPath" ] || log "mkdir -p \"${logPath}\""
     else
-        [ -d /mnt/home ] || mkdir "${homePath}"
-        [ -d /mnt/var/log ] || mkdir -p "${logPath}"
+        [ -d "$homePath" ] || mkdir "${homePath}"
+        [ -d "$logPath" ] || mkdir -p "${logPath}"
     fi
 
     # Now mount other essential system subvolumes
