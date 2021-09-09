@@ -35,7 +35,8 @@ set_target_disk() {
 }
 
 partition_disk() {
-    local efiSize=267 offset=2048 dataStart=$((offset*efiSize + offset))
+    local efiSize=267 offset=2048 dataStart
+    dataStart=$((offset*efiSize + offset))
 
     print_partition_layout
     prompt_before_erase
