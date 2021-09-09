@@ -86,9 +86,9 @@ format_partition() {
     echo "Formatting system data partition..."
     echo
     if $DRY_RUN; then
-        log "mkfs.btrfs -n 32k -L ArchRoot \"${dataPartition}\""
+        log "mkfs.btrfs -n 32k -L ArchRoot -f \"${dataPartition}\""
     else
-        mkfs.btrfs -n 32k -L ArchRoot "${dataPartition}"
+        mkfs.btrfs -n 32k -L ArchRoot -f "${dataPartition}"
     fi
 }
 
