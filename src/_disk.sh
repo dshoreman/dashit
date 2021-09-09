@@ -30,8 +30,13 @@ set_target_disk() {
         read -rp "Enter target device path: " targetDevice
     done
 
-    dataPartition="${targetDevice}p2"
-    efiPartition="${targetDevice}p1"
+    if [[ "${targetDevice}" =~ ^/dev/nvme.* ]]; then
+        dataPartition="${targetDevice}p2"
+        efiPartition="${targetDevice}p1"
+    else
+        dataPartition="${targetDevice}2"
+        efiPartition="${targetDevice}1"
+    fi
 }
 
 partition_disk() {
