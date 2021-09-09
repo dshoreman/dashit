@@ -2,7 +2,7 @@ provision_disk() {
     echo
     echo " Partitioning target disk"
     echo
-    set_target_disk "$@"
+    set_target_disk
 
     partition_disk
     format_partition
@@ -90,7 +90,7 @@ provision_partition() {
     echo
     echo "Creating subvolumes"
     echo
-    set_target_disk "$@"
+    set_target_disk
     set_mountpoint
 
     mount_disk && create_subvolumes

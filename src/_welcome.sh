@@ -13,9 +13,9 @@ welcome_screen() {
 
     case "$choice" in
         1)
-            provision_disk "$@" ;;
+            provision_disk ;;
         2)
-            provision_partition "$@" ;;
+            provision_partition ;;
         3)
             prepare_host ;;
         4)
