@@ -37,6 +37,8 @@ get_cpu_value() {
 }
 
 perform_install() {
+    set_target_disk
+    set_mountpoint
     mount_subvolumes
 
     if $DRY_RUN; then

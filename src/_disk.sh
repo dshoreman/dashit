@@ -29,11 +29,13 @@ set_target_disk() {
         echo
         read -rp "Enter target device path: " targetDevice
     done
+
+    dataPartition="${targetDevice}p2"
+    efiPartition="${targetDevice}p1"
 }
 
 partition_disk() {
     local efiSize=267 offset=2048 dataStart=$((offset*efiSize + offset))
-    dataPartition="${targetDevice}p2"
 
     print_partition_layout
     prompt_before_erase
@@ -150,37 +152,40 @@ mount_disk() {
 }
 
 mount_subvolumes() {
+    local m="${rootMount}" efiPath="${m}/efi" homePath="${m}/home" logPath="${m}/var/log"
+    local mountString="noatime,compress-force=zstd:5,space_cache=v2,subvol="
+
     # First, mount root subvolume named simply '@'
     if $DRY_RUN; then
-        log "mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt"
+        log "mount -o ${mountString}@ \"$dataPartition\" \"${m}\""
     else
-        mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@ /dev/nvme0n1p2 /mnt
+        mount -o ${mountString}@ "$dataPartition" "${m}"
     fi
 
     # Create dirs for and mount ESP and other partitions
     if $DRY_RUN; then
-        [ -d /mnt/efi ] || log "mkdir /mnt/efi"
-        log "mount /dev/nvme0n1p1 /mnt/efi"
+        [ -d /mnt/efi ] || log "mkdir \"${efiPath}\""
+        log "mount \"$efiPartition\" \"${efiPath}\""
     else
-        [ -d /mnt/efi ] || mkdir /mnt/efi
-        mount /dev/nvme0n1p1 /mnt/efi
+        [ -d /mnt/efi ] || mkdir "${efiPath}"
+        mount "$efiPartition" "${efiPath}"
     fi
 
     if $DRY_RUN; then
-        [ -d /mnt/home ] || log "mkdir /mnt/home"
-        [ -d /mnt/var/log ] || log "mkdir -p /mnt/var/log"
+        [ -d /mnt/home ] || log "mkdir \"${homePath}\""
+        [ -d /mnt/var/log ] || log "mkdir -p \"${logPath}\""
     else
-        [ -d /mnt/home ] || mkdir /mnt/home
-        [ -d /mnt/var/log ] || mkdir -p /mnt/var/log
+        [ -d /mnt/home ] || mkdir "${homePath}"
+        [ -d /mnt/var/log ] || mkdir -p "${logPath}"
     fi
 
     # Now mount other essential system subvolumes
     if $DRY_RUN; then
-        log "mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home"
-        log "mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@varlog /dev/nvme0n1p2 /mnt/var/log"
+        log "mount -o ${mountString}@home \"$dataPartition\" \"${homePath}\""
+        log "mount -o ${mountString}@varlog \"$dataPartition\" \"${logPath}\""
     else
-        mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@home /dev/nvme0n1p2 /mnt/home
-        mount -o noatime,compress-force=zstd:5,space_cache=v2,subvol=@varlog /dev/nvme0n1p2 /mnt/var/log
+        mount -o ${mountString}@home "$dataPartition" "${homePath}"
+        mount -o ${mountString}@varlog "$dataPartition" "${logPath}"
     fi
 }
 
