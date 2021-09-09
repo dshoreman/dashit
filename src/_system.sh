@@ -6,7 +6,8 @@ install_arch() {
             1)
                 set_cpu_package ;;
             2)
-                perform_install ;;
+                perform_install
+                break ;;
             b)
                 break ;;
             q)
