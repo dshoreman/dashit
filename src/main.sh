@@ -70,8 +70,7 @@ parse_opts() {
             -d|--device)
                 TARGET_DEVICE=${2//=}; shift 2 ;;
             -D|--dry-run)
-                debug=true; DRY_RUN=true; shift
-                log "Dry run enabled, commands won't actually run." ;;
+                debug=true; DRY_RUN=true; shift ;;
             -h|--help)
                 usage && exit 0 ;;
             -v|--verbose)

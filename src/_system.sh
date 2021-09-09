@@ -59,6 +59,8 @@ print_system_info() {
     echo
     echo "Current System: ${cpuType} (${architecture})"
     echo "${cpuModel}"
+    echo
+    echo -e "Dry run: $($DRY_RUN && echo -e "\e[1;32menabled" || echo -e "\e[1;31mdisabled")\e[0m"
 }
 
 process_system_info() {
