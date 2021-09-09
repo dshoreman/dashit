@@ -83,13 +83,21 @@ prompt_before_erase() {
 }
 
 format_partition() {
-    echo "Formatting system data partition..."
+    echo "Formatting EFI partition..."
+    if $DRY_RUN; then
+        log "mkfs.fat -F32 \"${efiPartition}\""
+    else
+        mkfs.fat -F32 "${efiPartition}" && echo "Done"
+    fi
     echo
+
+    echo "Formatting system data partition..."
     if $DRY_RUN; then
         log "mkfs.btrfs -n 32k -L ArchRoot -f \"${dataPartition}\""
     else
-        mkfs.btrfs -n 32k -L ArchRoot -f "${dataPartition}"
+        mkfs.btrfs -n 32k -L ArchRoot -f "${dataPartition}" && echo "Done"
     fi
+    echo
 }
 
 provision_partition() {
