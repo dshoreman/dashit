@@ -170,8 +170,8 @@ update_mirrorlist() {
 
     echo "Fetching filtered mirrorlist..."
     if $DRY_RUN; then
-        log "curl \"${mirrorlistUrl}\" > /etc/pacman.d/mirrorlist"
+        log "curl \"${mirrorlistUrl}\" | sed 's/^#S/S/' > /etc/pacman.d/mirrorlist"
     else
-        curl "${mirrorlistUrl}" > /etc/pacman.d/mirrorlist
+        curl "${mirrorlistUrl}" | sed 's/^#S/S/' > /etc/pacman.d/mirrorlist
     fi
 }
