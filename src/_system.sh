@@ -20,9 +20,16 @@ install_arch() {
 }
 
 prepare_host() {
+    echo
+    echo " Preparing host"
+    echo
     update_host_packages
     install_arch_scripts
     update_mirrorlist
+
+    echo
+    read -rsn1 -p "Press any key to continue..."
+    echo
 }
 
 get_cpu_value() {
@@ -37,9 +44,19 @@ perform_install() {
     else
         pacstrap /mnt base linux linux-firmware "$cpuPackage"
     fi
+
+    echo
+    echo "Install complete!"
+    echo
+    read -rsn1 -p "Press any key to continue..."
+    echo
 }
 
 print_install_menu() {
+    tput clear
+    echo
+    echo " Installation menu"
+    print_system_info
     echo
     echo " [ 1] Set microcode package (${cpuPackage:-none})"
     echo " [ 2] Perform install"
@@ -77,6 +94,7 @@ set_cpu_package() {
     selected="${selected%%-*}"
 
     while [ -z "$cpuAnswer" ]; do
+        echo
         read -rp "What type of CPU is in the target system? [${selected}] " cpuAnswer
         cpuAnswer="${cpuAnswer:-$selected}"
 

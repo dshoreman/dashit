@@ -4,8 +4,9 @@ source "${SCRIPT_ROOT}/_disk.sh"
 source "${SCRIPT_ROOT}/_system.sh"
 
 welcome_screen() {
+    tput clear
     echo
-    echo "Welcome to Dashit!"
+    echo " Welcome to Dashit!"
 
     print_system_info
     print_menu

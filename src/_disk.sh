@@ -1,8 +1,15 @@
 provision_disk() {
+    echo
+    echo " Partitioning target disk"
+    echo
     set_target_disk "$@"
 
     partition_disk
     format_partition
+
+    echo
+    read -rsn1 -p "Press any key to continue..."
+    echo
 }
 
 set_target_disk() {
@@ -78,11 +85,18 @@ format_partition() {
 }
 
 provision_partition() {
+    echo
+    echo "Creating subvolumes"
+    echo
     set_target_disk "$@"
     set_mountpoint
 
     mount_disk && create_subvolumes
     unmount_disk
+
+    echo
+    read -rsn1 -p "Press any key to continue..."
+    echo
 }
 
 set_mountpoint() {
