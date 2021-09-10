@@ -64,6 +64,7 @@ perform_install() {
 
 post_install() {
     set_console_font
+    set_date
     set_locale
     prepare_pacman
 }
@@ -76,6 +77,33 @@ set_console_font() {
     else
         setfont Lat2-Terminus16
         echo "FONT=Lat2-Terminus16" > "${rootMount}/etc/vconsole.conf"
+    fi
+}
+
+set_date() {
+    echo
+    echo "Setting up date/time"
+    echo
+
+    echo -n "Setting timezone to Europe/London... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime"
+    else
+        arch-chroot "${rootMount}" ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime && echo "Done"
+    fi
+
+    echo -n "Enabling NTP... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" timedatectl --set-ntp true"
+    else
+        arch-chroot "${rootMount}" timedatectl --set-ntp true && echo "Done"
+    fi
+
+    echo -n "Generating /etc/adjtime... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" hwclock --systohc"
+    else
+        arch-chroot "${rootMount}" hwclock --systohc
     fi
 }
 

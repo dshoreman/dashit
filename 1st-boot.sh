@@ -20,7 +20,6 @@ read -rsn1 -p $'Press any key to continue or Ctrl+C to exit.\n'
 cd "${0%/*}/rootscripts"
 
 . configure-network.sh
-. timezone-setup.sh
 . create-user.sh
 . prepare-pacman.sh
 
