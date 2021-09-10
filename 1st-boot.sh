@@ -40,14 +40,6 @@ systemctl enable dhcpcd@${_INTERFACE}.service
 systemctl start dhcpcd@${_INTERFACE}.service
 
 
-# . create-user.sh
-echo "Creating primary user..."
-
-read -p "Enter a username: " _USERNAME
-echo "$_USERNAME ALL=(ALL) ALL" > /etc/sudoers.d/$_USERNAME
-
-useradd -mg users -G games,uucp,systemd-journal,wheel $_USERNAME
-passwd $_USERNAME
 
 
 # . prepare-pacman.sh

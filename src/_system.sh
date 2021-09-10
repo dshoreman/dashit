@@ -7,6 +7,8 @@ install_arch() {
                 set_cpu_package ;;
             2)
                 set_hostname ;;
+            3)
+                set_username ;;
             i)
                 perform_install
                 break ;;
@@ -39,7 +41,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux linux-firmware)
+    local packages=(base linux linux-firmware man-db man-pages sudo)
 
     set_target_disk
     set_mountpoint
@@ -69,6 +71,7 @@ post_install() {
     set_date
     set_locale
     set_network
+    create_user
     prepare_pacman
 }
 
@@ -138,6 +141,35 @@ set_network() {
     fi
 }
 
+create_user() {
+    local groups="adm,games,uucp,systemd-journal,wheel"
+
+    echo
+    echo "Creating user account"
+    echo
+
+    echo -n "Creating new user... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" useradd -mg users -G $groups \"${systemUser}\""
+    else
+        arch-chroot "${rootMount}" useradd -mg users -G $groups "${systemUser}" && echo "Done"
+    fi
+
+    echo -n "Adding ${systemUser} to sudoers... "
+    if $DRY_RUN; then
+        log "echo \"${systemUser} ALL=(ALL) ALL\" > \"${rootMount}/etc/sudoers.d/${systemUser}\""
+    else
+        echo "${systemUser} ALL=(ALL) ALL" > "${rootMount}/etc/sudoers.d/${systemUser}" && echo "Done"
+    fi
+
+    echo -n "Forcing password reset for ${systemUser}... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" passwd --expire \"${systemUser}\""
+    else
+        arch-chroot "${rootMount}" passwd --expire "${systemUser}" && echo "Done"
+    fi
+}
+
 prepare_pacman() {
     echo
     echo "Setting up Pacman"
@@ -174,6 +206,7 @@ print_install_menu() {
     echo
     echo " [ 1] Set microcode package (${cpuPackage:-none})"
     echo " [ 2] Set a hostname (${systemHostname:-none})"
+    echo " [ 3] Set default sudo user (${systemUser:-none})"
     echo
     echo " [ i] Perform install"
     echo
@@ -233,6 +266,15 @@ set_hostname() {
         read -rp "Enter a new hostname: " hostnameAnswer
     done
     systemHostname="${hostnameAnswer}"
+}
+
+set_username() {
+    local usernameAnswer
+    while [ -z "$usernameAnswer" ]; do
+        echo
+        read -rp "Enter a new username: " usernameAnswer
+    done
+    systemUser="${usernameAnswer}"
 }
 
 install_arch_scripts() {
