@@ -65,6 +65,7 @@ perform_install() {
 post_install() {
     set_console_font
     set_locale
+    prepare_pacman
 }
 
 set_console_font() {
@@ -88,6 +89,34 @@ set_locale() {
         sed -ie 's/^#en_GB/en_GB/g' "${rootMount}/etc/locale.gen"
         arch-chroot ${rootMount} locale-gen
         echo "LANG=en_GB.UTF-8" > "${rootMount}/etc/locale.conf"
+    fi
+}
+
+prepare_pacman() {
+    echo
+    echo "Setting up Pacman"
+    echo
+
+    echo -n "Enabling colour and chomp progress... "
+    if $DRY_RUN; then
+        log "sed -ie 's/^#Color/Color\nILoveCandy/' \"${rootMount}/etc/pacman.conf\""
+    else
+        sed -ie 's/^#Color/Color\nILoveCandy/' "${rootMount}/etc/pacman.conf" && echo "Done"
+    fi
+
+    echo -n "Enabling parallel downloads... "
+    if $DRY_RUN; then
+        log "sed -ie 's/^#ParallelDownloads/ParallelDownloads/' \"${rootMount}/etc/pacman.conf\""
+    else
+        sed -ie 's/^#ParallelDownloads/ParallelDownloads/' "${rootMount}/etc/pacman.conf" && echo "Done"
+    fi
+
+    echo -n "Enabling multilib repository... "
+    if $DRY_RUN; then
+        log "sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \"${rootMount}/etc/pacman.conf\""
+    else
+        sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \
+            "${rootMount}/etc/pacman.conf" && echo "Done"
     fi
 }
 
