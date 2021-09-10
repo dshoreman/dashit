@@ -83,11 +83,11 @@ set_locale() {
     echo "Setting locale..."
     if $DRY_RUN; then
         log "sed -ie 's/^#en_GB/en_GB/g' ${rootMount}/etc/locale.gen"
-        log "arch-chroot ${rootMount} locale-gen"
+        log "arch-chroot \"${rootMount}\" locale-gen"
         log "echo \"LANG=en_GB.UTF-8\" > ${rootMount}/etc/locale.conf"
     else
         sed -ie 's/^#en_GB/en_GB/g' "${rootMount}/etc/locale.gen"
-        arch-chroot ${rootMount} locale-gen
+        arch-chroot "${rootMount}" locale-gen
         echo "LANG=en_GB.UTF-8" > "${rootMount}/etc/locale.conf"
     fi
 }
