@@ -43,7 +43,7 @@ perform_install() {
     set_mountpoint
     mount_subvolumes
 
-    if $cpuPackage; then
+    if [ -n "$cpuPackage" ]; then
         packages+=("$cpuPackage")
     fi
 
