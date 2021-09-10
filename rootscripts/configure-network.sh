@@ -1,10 +1,6 @@
 #!/bin/bash
 
-echo "Setting system hostname..."
-
-# Set hostname
-read -p "Enter hostname: " _HOSTNAME
-echo "$_HOSTNAME" > /etc/hostname
+# Resolve hostname (hosts is empty on new systems, not sure if this is still needed)
 sed -ie 's/localhost$/localhost\t'$_HOSTNAME'/g' /etc/hosts
 
 # Get the interface name

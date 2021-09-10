@@ -6,6 +6,8 @@ install_arch() {
             1)
                 set_cpu_package ;;
             2)
+                set_hostname ;;
+            i)
                 perform_install
                 break ;;
             b)
@@ -66,6 +68,7 @@ post_install() {
     set_console_font
     set_date
     set_locale
+    set_network
     prepare_pacman
 }
 
@@ -73,7 +76,7 @@ set_console_font() {
     echo "Setting console font..."
     if $DRY_RUN; then
         log "setfont Lat2-Terminus16"
-        log "echo \"FONT=Lat2-Terminus16\" > \'${rootMount}/etc/vconsole.conf\""
+        log "echo \"FONT=Lat2-Terminus16\" > \"${rootMount}/etc/vconsole.conf\""
     else
         setfont Lat2-Terminus16
         echo "FONT=Lat2-Terminus16" > "${rootMount}/etc/vconsole.conf"
@@ -120,6 +123,21 @@ set_locale() {
     fi
 }
 
+set_network() {
+    echo
+    echo "Setting up network options"
+    echo
+
+    echo -n "Setting hostname... "
+    if [ -z "${systemHostname}" ]; then
+        log "Skipping, hostname isn't set"
+    elif $DRY_RUN; then
+        log "echo \"${systemHostname}\" > \"${rootMount}/etc/hostname\""
+    else
+        echo "${systemHostname}" > "${rootMount}/etc/hostname"
+    fi
+}
+
 prepare_pacman() {
     echo
     echo "Setting up Pacman"
@@ -155,7 +173,9 @@ print_install_menu() {
     print_system_info
     echo
     echo " [ 1] Set microcode package (${cpuPackage:-none})"
-    echo " [ 2] Perform install"
+    echo " [ 2] Set a hostname (${systemHostname:-none})"
+    echo
+    echo " [ i] Perform install"
     echo
     echo " [ b] Back to main menu"
     echo " [ q] Quit"
@@ -204,6 +224,15 @@ set_cpu_package() {
                 cpuAnswer=
     esac
     done
+}
+
+set_hostname() {
+    local hostnameAnswer
+    while [ -z "$hostnameAnswer" ]; do
+        echo
+        read -rp "Enter a new hostname: " hostnameAnswer
+    done
+    systemHostname="${hostnameAnswer}"
 }
 
 install_arch_scripts() {
