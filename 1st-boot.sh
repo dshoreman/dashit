@@ -19,9 +19,47 @@ read -rsn1 -p $'Press any key to continue or Ctrl+C to exit.\n'
 
 cd "${0%/*}/rootscripts"
 
-. configure-network.sh
-. create-user.sh
-. prepare-pacman.sh
+
+# . configure-network.sh
+# Resolve hostname (hosts is empty on new systems, not sure if this is still needed)
+sed -ie 's/localhost$/localhost\t'$_HOSTNAME'/g' /etc/hosts
+
+# Get the interface name
+echo
+echo "We are about to print a list of network devices"
+echo "present in your system. When prompted,  type in"
+echo "the name of your ethernet device e.g. 'enp2s0'."
+echo
+ip link
+echo
+read -p "Enter interface name: " _INTERFACE
+
+# Enable DHCP
+echo "Enabling DHCP..."
+systemctl enable dhcpcd@${_INTERFACE}.service
+systemctl start dhcpcd@${_INTERFACE}.service
+
+
+# . create-user.sh
+echo "Creating primary user..."
+
+read -p "Enter a username: " _USERNAME
+echo "$_USERNAME ALL=(ALL) ALL" > /etc/sudoers.d/$_USERNAME
+
+useradd -mg users -G games,uucp,systemd-journal,wheel $_USERNAME
+passwd $_USERNAME
+
+
+# . prepare-pacman.sh
+echo "Configuring pacman..."
+
+# Install reflector for mirror prioritisation
+pacman -Syy && pacman -S reflector
+reflector --save /etc/pacman.d/mirrorlist --sort rate -c "United Kingdom"
+
+# One last mirror update
+pacman -Syy
+
 
 # Make the somewhat dangerous assumption that
 # the user cloned this repo to ~/dotfiles...
