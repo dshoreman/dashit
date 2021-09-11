@@ -40,7 +40,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux linux-firmware man-db man-pages refind sudo reflector)
+    local packages=(base linux linux-firmware man-db man-pages refind sudo reflector dhcpcd)
 
     set_target_disk
     set_mountpoint
@@ -148,6 +148,13 @@ set_network() {
         log "echo \"${systemHostname}\" > \"${rootMount}/etc/hostname\""
     else
         echo "${systemHostname}" > "${rootMount}/etc/hostname"
+    fi
+
+    echo -n "Enabling DHCP... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" systemctl enable dhcpcd.service"
+    else
+        arch-chroot "${rootMount}" systemctl enable dhcpcd.service
     fi
 }
 
