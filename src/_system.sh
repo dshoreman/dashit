@@ -72,6 +72,7 @@ post_install() {
     set_locale
     set_network
     create_user
+    set_root
     prepare_pacman
 }
 
@@ -167,6 +168,18 @@ create_user() {
         log "arch-chroot \"${rootMount}\" passwd --expire \"${systemUser}\""
     else
         arch-chroot "${rootMount}" passwd --expire "${systemUser}" && echo "Done"
+    fi
+}
+
+set_root() {
+    echo
+    echo "Setting root password"
+    echo
+
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" passwd"
+    else
+        arch-chroot "${rootMount}" passwd && echo "Done"
     fi
 }
 
