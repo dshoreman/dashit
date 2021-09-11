@@ -41,7 +41,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux linux-firmware man-db man-pages sudo)
+    local packages=(base linux linux-firmware man-db man-pages sudo reflector)
 
     set_target_disk
     set_mountpoint
@@ -171,6 +171,9 @@ create_user() {
 }
 
 prepare_pacman() {
+    local mirrors="${rootMount}/etc/pacman.d/mirrorlist"
+    local reflectorOpts=(--save "$mirrors" --score 5 --sort rate -p https -c "United Kingdom")
+
     echo
     echo "Setting up Pacman"
     echo
@@ -195,6 +198,15 @@ prepare_pacman() {
     else
         sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \
             "${rootMount}/etc/pacman.conf" && echo "Done"
+    fi
+
+    echo -n "Fetching filtered mirrorlist... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" reflector ${reflectorOpts[*]}"
+        log "arch-chroot \"${rootMount}\" pacman -Syy"
+    else
+        arch-chroot "${rootMount}" reflector "${reflectorOpts[@]}"
+        arch-chroot "${rootMount}" pacman -Syy
     fi
 }
 

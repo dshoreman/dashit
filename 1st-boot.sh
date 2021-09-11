@@ -42,15 +42,6 @@ systemctl start dhcpcd@${_INTERFACE}.service
 
 
 
-# . prepare-pacman.sh
-echo "Configuring pacman..."
-
-# Install reflector for mirror prioritisation
-pacman -Syy && pacman -S reflector
-reflector --save /etc/pacman.d/mirrorlist --sort rate -c "United Kingdom"
-
-# One last mirror update
-pacman -Syy
 
 
 # Make the somewhat dangerous assumption that
