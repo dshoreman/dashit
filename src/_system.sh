@@ -77,7 +77,8 @@ post_install() {
 }
 
 generate_fstab() {
-    echo "Generating fstab..."
+    echo
+    echo -n "Generating fstab..."
     if $DRY_RUN; then
         log "genfstab -U \"${rootMount}\" >> \"${rootMount}/etc/fstab\""
     else
@@ -86,13 +87,13 @@ generate_fstab() {
 }
 
 set_console_font() {
-    echo "Setting console font..."
+    echo -n "Setting console font..."
     if $DRY_RUN; then
         log "setfont Lat2-Terminus16"
         log "echo \"FONT=Lat2-Terminus16\" > \"${rootMount}/etc/vconsole.conf\""
     else
         setfont Lat2-Terminus16
-        echo "FONT=Lat2-Terminus16" > "${rootMount}/etc/vconsole.conf"
+        echo "FONT=Lat2-Terminus16" > "${rootMount}/etc/vconsole.conf" && echo "Done"
     fi
 }
 
@@ -119,7 +120,7 @@ set_date() {
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" hwclock --systohc"
     else
-        arch-chroot "${rootMount}" hwclock --systohc
+        arch-chroot "${rootMount}" hwclock --systohc && echo "Done"
     fi
 }
 
@@ -147,14 +148,14 @@ set_network() {
     elif $DRY_RUN; then
         log "echo \"${systemHostname}\" > \"${rootMount}/etc/hostname\""
     else
-        echo "${systemHostname}" > "${rootMount}/etc/hostname"
+        echo "${systemHostname}" > "${rootMount}/etc/hostname" && echo "Done"
     fi
 
     echo -n "Enabling DHCP... "
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" systemctl enable dhcpcd.service"
     else
-        arch-chroot "${rootMount}" systemctl enable dhcpcd.service
+        arch-chroot "${rootMount}" systemctl enable dhcpcd.service && echo "Done"
     fi
 }
 
@@ -368,6 +369,7 @@ install_arch_scripts() {
     # If it's a manjaro install...
     # pacman-key --populate archlinux     # May or may not need this, we'll see.
 
+    echo
     echo "Downloading Arch install scripts..."
     if $DRY_RUN; then
         log "pacman -Syy --noconfirm arch-install-scripts"

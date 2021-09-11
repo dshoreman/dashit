@@ -45,6 +45,8 @@ partition_disk() {
     print_partition_layout
     prompt_before_erase
 
+    echo "Partitioning..."
+    echo
     if $DRY_RUN; then
         log "parted --script --align optimal \"${targetDevice}\" \\"
         log "    mklabel gpt \\"
@@ -74,10 +76,13 @@ print_partition_layout() {
 }
 
 prompt_before_erase() {
-    echo "ALL DATA WILL BE ERASED! IF THIS IS NOT THE RIGHT DISK, HIT CTRL-C NOW!"
+    echo
+    echo
+    err "ALL DATA WILL BE ERASED! IF THIS IS NOT THE RIGHT DISK, HIT CTRL-C NOW!"
+    echo
     echo "To continue partitioning ${targetDevice}, press any other key."
     echo
-    read -rsn1 -p $'Waiting...\n'
+    read -rsn1 -p $'Waiting...\n\n'
 }
 
 format_partition() {
@@ -141,6 +146,7 @@ set_mountpoint() {
 
 create_subvolumes() {
     for subvolume in @ @home @varlog @vbox @snapshots; do
+        echo
         echo "Creating '${subvolume}' subvolume..."
         if $DRY_RUN; then
             log "btrfs subvolume create \"${rootMount}/${subvolume}\""
