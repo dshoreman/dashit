@@ -193,7 +193,7 @@ set_root() {
 }
 
 prepare_pacman() {
-    local mirrors="${rootMount}/etc/pacman.d/mirrorlist"
+    local mirrors="/etc/pacman.d/mirrorlist"
     local reflectorOpts=(--save "$mirrors" --score 5 --sort rate -p https -c "United Kingdom")
 
     echo
