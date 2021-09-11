@@ -180,11 +180,11 @@ create_user() {
         echo "${systemUser} ALL=(ALL) ALL" > "${rootMount}/etc/sudoers.d/${systemUser}" && echo "Done"
     fi
 
-    echo -n "Forcing password reset for ${systemUser}... "
+    echo "Forcing password reset for ${systemUser}... "
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" passwd --expire \"${systemUser}\""
+        log "arch-chroot \"${rootMount}\" passwd -qde \"${systemUser}\""
     else
-        arch-chroot "${rootMount}" passwd --expire "${systemUser}" && echo "Done"
+        arch-chroot "${rootMount}" passwd -qde "${systemUser}" && echo "Done"
     fi
 }
 
