@@ -110,9 +110,9 @@ set_date() {
 
     echo -n "Enabling NTP... "
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" timedatectl --set-ntp true"
+        log "arch-chroot \"${rootMount}\" timedatectl set-ntp true"
     else
-        arch-chroot "${rootMount}" timedatectl --set-ntp true && echo "Done"
+        arch-chroot "${rootMount}" timedatectl set-ntp true && echo "Done"
     fi
 
     echo -n "Generating /etc/adjtime... "
