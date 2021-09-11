@@ -379,6 +379,13 @@ install_arch_scripts() {
 }
 
 update_host_packages() {
+    echo -n "Enabling parallel downloads in host's Pacman... "
+    if $DRY_RUN; then
+        log "sed -ie 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf"
+    else
+        sed -ie 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf && echo "Done"
+    fi
+
     echo "Updating host system..."
     if $DRY_RUN; then
         log "pacman -Syyu --noconfirm"
