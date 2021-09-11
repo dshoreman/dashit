@@ -65,6 +65,7 @@ perform_install() {
 }
 
 post_install() {
+    generate_fstab
     set_console_font
     set_date
     set_locale
@@ -72,6 +73,15 @@ post_install() {
     create_user
     set_root
     prepare_pacman
+}
+
+generate_fstab() {
+    echo "Generating fstab..."
+    if $DRY_RUN; then
+        log "genfstab -U \"${rootMount}\" >> \"${rootMount}/etc/fstab\""
+    else
+        genfstab -U "${rootMount}" >> "${rootMount}/etc/fstab" && echo "Done"
+    fi
 }
 
 set_console_font() {
