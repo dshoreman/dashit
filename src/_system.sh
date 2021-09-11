@@ -355,18 +355,18 @@ install_arch_scripts() {
 
     echo "Downloading Arch install scripts..."
     if $DRY_RUN; then
-        log "pacman -Syy arch-install-scripts"
+        log "pacman -Syy --noconfirm arch-install-scripts"
     else
-        pacman -Syy arch-install-scripts     # Installs packages like pacstrap, arch-chroot etc
+        pacman -Syy --noconfirm arch-install-scripts     # Installs packages like pacstrap, arch-chroot etc
     fi
 }
 
 update_host_packages() {
     echo "Updating host system..."
     if $DRY_RUN; then
-        log "pacman -Syyu"
+        log "pacman -Syyu --noconfirm"
     else
-        pacman -Syyu
+        pacman -Syyu --noconfirm
     fi
 }
 
