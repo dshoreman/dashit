@@ -32,8 +32,7 @@ prepare_host() {
     update_mirrorlist
 
     echo
-    read -rsn1 -p "Press any key to continue..."
-    echo
+    read -rsn1 -p $'Press any key to continue...\n'
 }
 
 get_cpu_value() {
@@ -62,8 +61,7 @@ perform_install() {
     echo
     echo "Install complete!"
     echo
-    read -rsn1 -p "Press any key to continue..."
-    echo
+    read -rsn1 -p $'Press any key to continue...\n'
 }
 
 post_install() {

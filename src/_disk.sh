@@ -8,8 +8,7 @@ provision_disk() {
     format_partition
 
     echo
-    read -rsn1 -p "Press any key to continue..."
-    echo
+    read -rsn1 -p $'Press any key to continue...\n'
 }
 
 set_target_disk() {
@@ -78,8 +77,7 @@ prompt_before_erase() {
     echo "ALL DATA WILL BE ERASED! IF THIS IS NOT THE RIGHT DISK, HIT CTRL-C NOW!"
     echo "To continue partitioning ${targetDevice}, press any other key."
     echo
-    read -rsn1 -p "Waiting..."
-    echo
+    read -rsn1 -p $'Waiting...\n'
 }
 
 format_partition() {
@@ -111,8 +109,7 @@ provision_partition() {
     unmount_disk
 
     echo
-    read -rsn1 -p "Press any key to continue..."
-    echo
+    read -rsn1 -p $'Press any key to continue...\n'
 }
 
 set_mountpoint() {
