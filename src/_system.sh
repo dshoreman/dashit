@@ -250,6 +250,12 @@ install_refind() {
 
     echo "Generating refind_linux.conf..."
     rootFlags="root=PARTUUID=${partUuid} rw rootflags=subvol=@"
+
+    if [ -n "$cpuPackage" ]; then
+        echo "Adding @\\boot\\${cpuPackage}.img to enable microcode updates..."
+        rootFlags="${rootFlags} initrd=@\\boot\\${cpuPackage}.img"
+    fi
+
     bootConf=$(cat <<EOF
 "Boot using default options"     "${rootFlags} initrd=@\boot\initramfs-%v.img audit=off"
 "Boot using fallback initramfs"  "${rootFlags} initrd=@\boot\initramfs-%v-fallback.img"
