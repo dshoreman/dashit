@@ -40,7 +40,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux linux-firmware man-db man-pages sudo reflector)
+    local packages=(base linux linux-firmware man-db man-pages refind sudo reflector)
 
     set_target_disk
     set_mountpoint
@@ -73,6 +73,7 @@ post_install() {
     create_user
     set_root
     prepare_pacman
+    install_refind
 }
 
 generate_fstab() {
@@ -228,6 +229,38 @@ prepare_pacman() {
     else
         arch-chroot "${rootMount}" reflector "${reflectorOpts[@]}"
         arch-chroot "${rootMount}" pacman -Syy
+    fi
+}
+
+install_refind() {
+    local bootConf partUuid rootFlags
+    echo
+    echo "Installing refind to ${efiPartition}"
+    echo
+
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" refind-install"
+    else
+        arch-chroot "${rootMount}" refind-install
+    fi
+
+    # todo: patch /boot/refind_linux.conf
+    echo "Finding PARTUUID of system partition..."
+    partUuid="$(arch-chroot "${rootMount}" blkid -o value -s PARTUUID "${dataPartition}")"
+
+    echo "Generating refind_linux.conf..."
+    rootFlags="root=PARTUUID=${partUuid} rw rootflags=subvol=@"
+    bootConf=$(cat <<EOF
+"Boot using default options"     "${rootFlags} initrd=@\boot\initramfs-%v.img audit=off"
+"Boot using fallback initramfs"  "${rootFlags} initrd=@\boot\initramfs-%v-fallback.img"
+"Boot to terminal"               "${rootFlags} initrd=@\boot\initramfs-%v.img systemd.unit-multi-user.target"
+EOF
+)
+    echo -n "Saving config to /boot/refind_linux.conf... "
+    if $DRY_RUN; then
+        log "echo \"$bootConf\" > \"${rootMount}/boot/refind_linux.conf\""
+    else
+        echo "$bootConf" > "${rootMount}/boot/refind_linux.conf" && echo "Done"
     fi
 }
 
