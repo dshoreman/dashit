@@ -246,7 +246,7 @@ install_refind() {
 
     # todo: patch /boot/refind_linux.conf
     echo "Finding PARTUUID of system partition..."
-    partUuid="$(arch-chroot "${rootMount}" blkid -o value -s PARTUUID "${dataPartition}")"
+    partUuid="$(blkid -o value -s PARTUUID "${dataPartition}")"
 
     echo "Generating refind_linux.conf..."
     rootFlags="root=PARTUUID=${partUuid} rw rootflags=subvol=@"
