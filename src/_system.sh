@@ -268,6 +268,14 @@ EOF
     else
         echo "$bootConf" > "${rootMount}/boot/refind_linux.conf" && echo "Done"
     fi
+
+    echo -n "Enabling kernel detection... "
+    sedopt='s/^#\(extra_kernel_version_strings\) \([linux,-ts]\+\)$/\1 linux-hardened,linux-zen,\2/'
+    if $DRY_RUN; then
+        log "sed -ie '${sedopt}' \"${rootMount}/efi/EFI/refind/refind.conf\""
+    else
+        sed -ie "$sedopt" "${rootMount}/efi/EFI/refind/refind.conf"
+    fi
 }
 
 print_install_menu() {
