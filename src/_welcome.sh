@@ -24,6 +24,11 @@ welcome_screen() {
             exit 0 ;;
         u)
             unmount_disk ;;
+        r)
+            unmount_disk
+
+            echo "Rebooting!"
+            reboot ;;
     esac
 }
 
@@ -38,6 +43,7 @@ print_menu() {
     echo
     echo " [ q] Quit"
     [ -n "$isInstalled" ] && echo " [ u] Unmount partitions"
+    [ -n "$isInstalled" ] && echo " [ r] Unmount and reboot"
     echo
 
     read -rn1 -p "Select option: " choice
