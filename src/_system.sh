@@ -12,6 +12,12 @@ install_arch() {
             i)
                 perform_install
                 break ;;
+            I)
+                provision_disk
+                provision_partition
+                prepare_host
+                perform_install
+                break ;;
             b)
                 break ;;
             q)
@@ -298,6 +304,7 @@ print_install_menu() {
     echo " [ 3] Set default sudo user (${systemUser:-none})"
     echo
     echo " [ i] Perform install"
+    echo " [ I] Perform clean install (runs all steps on main menu)"
     echo
     echo " [ b] Back to main menu"
     echo " [ q] Quit"
