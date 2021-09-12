@@ -9,6 +9,11 @@ source "${SCRIPT_ROOT}/_io.sh"
 # shellcheck source=_welcome.sh
 source "${SCRIPT_ROOT}/_welcome.sh"
 
+if [ "$EUID" -ne 0 ]; then
+    err "Dashit must be run as root! Aborting."
+    exit 1
+fi
+
 trap 'err "Unexpected error; aborting." && exit 1' ERR
 trap 'err "Aborted by user." && exit 1' SIGINT
 
