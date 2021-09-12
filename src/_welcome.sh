@@ -21,7 +21,9 @@ welcome_screen() {
         4)
             install_arch ;;
         q)
-            exit 0
+            exit 0 ;;
+        u)
+            unmount_disk ;;
     esac
 }
 
@@ -35,6 +37,7 @@ print_menu() {
     echo " [ 4] Install Arch Linux"
     echo
     echo " [ q] Quit"
+    [ -n "$isInstalled" ] && echo " [ u] Unmount partitions"
     echo
 
     read -rn1 -p "Select option: " choice

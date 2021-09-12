@@ -210,8 +210,8 @@ mount_subvolumes() {
 unmount_disk() {
     echo -n "Unmounting ${rootMount}..."
     if $DRY_RUN; then
-        log "umount \"${rootMount}\"" && echo "Done!"
+        log "umount -R \"${rootMount}\"" && echo "Done!"
     else
-        umount "${rootMount}" && echo "Done!"
+        umount -R "${rootMount}" && echo "Done!"
     fi
 }

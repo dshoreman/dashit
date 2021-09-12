@@ -57,6 +57,7 @@ perform_install() {
     fi
 
     post_install
+    isInstalled=1
 
     echo
     echo "Install complete!"
