@@ -158,7 +158,7 @@ set_network() {
         echo "${systemHostname}" > "${rootMount}/etc/hostname" && echo "Done"
     fi
 
-    echo -n "Enabling DHCP... "
+    echo "Enabling DHCP..."
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" systemctl enable dhcpcd.service"
     else
@@ -237,7 +237,7 @@ prepare_pacman() {
             "${rootMount}/etc/pacman.conf" && echo "Done"
     fi
 
-    echo -n "Fetching filtered mirrorlist... "
+    echo "Fetching filtered mirrorlist..."
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" reflector ${reflectorOpts[*]}"
         log "arch-chroot \"${rootMount}\" pacman -Syy"
