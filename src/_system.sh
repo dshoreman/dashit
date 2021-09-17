@@ -46,7 +46,8 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux linux-firmware man-db man-pages refind sudo reflector dhcpcd)
+    local packages=(base linux linux-firmware man-db man-pages sudo)
+    packages+=(base-devel dhcpcd git refind reflector)
 
     set_target_disk
     set_mountpoint
@@ -245,6 +246,8 @@ prepare_pacman() {
         arch-chroot "${rootMount}" reflector "${reflectorOpts[@]}"
         arch-chroot "${rootMount}" pacman -Syy
     fi
+
+    install_yay
 }
 
 install_refind() {
@@ -290,6 +293,38 @@ EOF
         log "sed -ie '${sedopt}' \"${rootMount}/efi/EFI/refind/refind.conf\""
     else
         sed -ie "$sedopt" "${rootMount}/efi/EFI/refind/refind.conf"
+    fi
+}
+
+install_yay() {
+    local yayRepo="https://aur.archlinux.org/yay-bin.git"
+
+    echo
+    echo "Installing AUR helper"
+    echo
+
+    echo "Fetching PKGBUILD from AUR..."
+    if $DRY_RUN; then
+        log "git clone \"${yayRepo}\" \"${rootMount}/opt/yay-bin\""
+    else
+        git clone "${yayRepo}" "${rootMount}/opt/yay-bin"
+    fi
+
+    echo "Building package..."
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" chown -R nobody /opt/yay-bin"
+        log "arch-chroot -u nobody \"${rootMount}\" sh -c 'cd /opt/yay-bin && makepkg'"
+    else
+        arch-chroot "${rootMount}" chown -R nobody /opt/yay-bin
+        arch-chroot -u nobody "${rootMount}" sh -c 'cd /opt/yay-bin && makepkg'
+    fi
+
+    echo "Installing yay..."
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" pacman --noconfirm -U /opt/yay-bin/yay-bin-*.pkg.tar.zst"
+    else
+        pkgFile="$(arch-chroot "${rootMount}" find /opt/yay-bin -name '*.pkg.*')"
+        arch-chroot "${rootMount}" pacman --noconfirm -U "${pkgFile}"
     fi
 }
 
