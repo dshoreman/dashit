@@ -13,6 +13,7 @@ install_arch() {
                 perform_install
                 break ;;
             I)
+                AUTO_INSTALL=true
                 provision_disk
                 provision_partition
                 prepare_host
@@ -38,7 +39,7 @@ prepare_host() {
     update_mirrorlist
 
     echo
-    read -rsn1 -p $'Press any key to continue...\n'
+    $AUTO_INSTALL || read -rsn1 -p $'Press any key to continue...\n'
 }
 
 get_cpu_value() {

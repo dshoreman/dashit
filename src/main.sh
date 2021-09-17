@@ -34,7 +34,7 @@ main() {
         exit 1
     fi
 
-    local debug=false DRY_RUN=false
+    local debug=false AUTO_INSTALL=false DRY_RUN=false
 
     check_bash_version
     parse_opts "$@"

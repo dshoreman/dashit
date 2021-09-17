@@ -8,7 +8,7 @@ provision_disk() {
     format_partition
 
     echo
-    read -rsn1 -p $'Press any key to continue...\n'
+    $AUTO_INSTALL || read -rsn1 -p $'Press any key to continue...\n'
 }
 
 set_target_disk() {
@@ -114,7 +114,7 @@ provision_partition() {
     unmount_disk
 
     echo
-    read -rsn1 -p $'Press any key to continue...\n'
+    $AUTO_INSTALL || read -rsn1 -p $'Press any key to continue...\n'
 }
 
 set_mountpoint() {
