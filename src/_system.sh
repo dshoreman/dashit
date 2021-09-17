@@ -62,7 +62,8 @@ perform_install() {
     if $DRY_RUN; then
         log "pacstrap /mnt ${packages[*]}"
     else
-        pacstrap /mnt "${packages[@]}"
+        # Sometimes 1 or 2 packages fail to download, but work second time
+        pacstrap /mnt "${packages[@]}" || pacstrap /mnt "${packages[@]}"
     fi
 
     post_install
@@ -264,7 +265,6 @@ install_refind() {
         arch-chroot "${rootMount}" refind-install
     fi
 
-    # todo: patch /boot/refind_linux.conf
     echo "Finding PARTUUID of system partition..."
     partUuid="$(blkid -o value -s PARTUUID "${dataPartition}")"
 
@@ -411,15 +411,12 @@ set_username() {
 }
 
 install_arch_scripts() {
-    # If it's a manjaro install...
-    # pacman-key --populate archlinux     # May or may not need this, we'll see.
-
     echo
     echo "Downloading Arch install scripts..."
     if $DRY_RUN; then
         log "pacman -Syy --noconfirm arch-install-scripts"
     else
-        pacman -Syy --noconfirm arch-install-scripts     # Installs packages like pacstrap, arch-chroot etc
+        pacman -Syy --noconfirm arch-install-scripts     # Installs pacstrap, arch-chroot etc
     fi
 }
 
