@@ -1,0 +1,3 @@
+dashit
+*.md
+!README.md
