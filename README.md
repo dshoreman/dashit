@@ -2,15 +2,18 @@
 
 *Dave's Arch System helper/install tool* is a set of Bash scripts that automate the steps in the Arch Linux installation guide.
 
-## Building
-
-Clone the repo, then `cd dashit && make` to produce the `dashit` script.
-
 ## Usage
 
-The `dashit` script must be run with sudo powers, otherwise certain functionality (e.g. formatting) won't work.
+Download and run the latest script from GitHub Releases:
 
-On running `sudo ./dashit`, you'll be presented with a menu where you can:
+```sh
+wget https://github.com/dshoreman/dashit/releases/download/v0.1.0/dashit
+sudo ./dashit --help
+```
+
+### Main Menu
+
+When you run dashit, you'll be presented with a menu where you can:
 
 1. **Partition and format disk**
 
