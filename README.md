@@ -1,12 +1,38 @@
 # DASHit
 
-## Introduction (wtf is DASHit?)
+*Dave's Arch System helper/install tool* is a set of Bash scripts that automate the steps in the Arch Linux installation guide.
 
-*DASHit* is a set of Bash scripts that automate and/or simplify the majority of the Arch Linux installation process.  
-It's short for *Dave's Arch System Helper/install tool*. If you read it any other way, that's on you.
+## Building
 
-Tl;dr: It builds on scripts previously in [my dotfiles] to automate everything from format to first boot, because frankly I'll never
-remember every single step in [the Installation Guide], and I'm too lazy to format disks manually for each new install.
+Clone the repo, then `cd dashit && make` to produce the `dashit` script.
 
-[my dotfiles]: https://github.com/dshoreman/dotfiles/tree/8dfd4ae4fdf4cbf8f492f0cfef0f55bf0a95a5e4
-[the Installation Guide]: https://wiki.archlinux.org/title/Installation_guide#toc
+## Usage
+
+The `dashit` script must be run with sudo powers, otherwise certain functionality (e.g. formatting) won't work.
+
+On running `sudo ./dashit`, you'll be presented with a menu where you can:
+
+1. **Partition and format disk**
+
+    Provisions a disk, creating a small ESP formatted as FAT32, with remaining space used for the main btrfs partition.
+
+2. **Create btrfs subvolumes**
+
+    Mounts the main btrfs data partition and creates 5 subvolumes: `@`, `@home`, `@varlog`, `@snapshots` and `@vbox`.  
+    By default, the partition will be mounted to **/mnt**. If it's not empty, you'll be prompted for a different mountpoint.
+
+    Once the subvolumes have been created, the partition is unmounted.
+
+3. **Prepare host system**
+
+    Updates the host after enabling Pacman's parallel downloads feature, and installs the `arch-install-scripts` package.  
+    Once done, the latest mirrors are fetched from archlinux.org and written to /etc/pacman.d/mirrorlist.
+
+4. **Install Arch Linux**
+
+    Enters the installation submenu.
+
+    Configure microcode, hostname and username with the numbered options then press `i` or `I` to install. Interactive mode (`i`) assumes you have already ran steps 1-3 from the main menu; use unattended (`I`) to have them autorun.  
+    In both cases, your user is created without a password, so you'll need to set that on first login.
+
+    Once install has completed and you're back at the menu, press `r` to unmount all the subvolumes and reboot.  
