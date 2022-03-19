@@ -307,17 +307,17 @@ install_yay() {
 
     echo "Fetching PKGBUILD from AUR..."
     if $DRY_RUN; then
-        log "git clone \"${yayRepo}\" \"${rootMount}/opt/yay-bin\""
+        log "arch-chroot \"${rootMount}\" git clone \"${yayRepo}\" /opt/yay-bin"
     else
-        git clone "${yayRepo}" "${rootMount}/opt/yay-bin"
+        arch-chroot "${rootMount}" git clone "${yayRepo}" /opt/yay-bin
     fi
 
     echo "Building package..."
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" chown -R nobody /opt/yay-bin"
+        log "chown -R nobody \"${rootMount}/opt/yay-bin\""
         log "arch-chroot -u nobody \"${rootMount}\" sh -c 'cd /opt/yay-bin && makepkg'"
     else
-        arch-chroot "${rootMount}" chown -R nobody /opt/yay-bin
+        chown -R nobody "${rootMount}/opt/yay-bin"
         arch-chroot -u nobody "${rootMount}" sh -c 'cd /opt/yay-bin && makepkg'
     fi
 
