@@ -212,9 +212,6 @@ set_root() {
 }
 
 prepare_pacman() {
-    local mirrors="/etc/pacman.d/mirrorlist"
-    local reflectorOpts=(--save "$mirrors" --score 5 --sort rate -p https -c "United Kingdom")
-
     echo
     echo "Setting up Pacman"
     echo
@@ -236,18 +233,20 @@ prepare_pacman() {
     echo -n "Enabling multilib repository... "
     if $DRY_RUN; then
         log "sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \"${rootMount}/etc/pacman.conf\""
-    else
-        sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \
-            "${rootMount}/etc/pacman.conf" && echo "Done"
-    fi
-
-    echo "Fetching filtered mirrorlist..."
-    if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" reflector ${reflectorOpts[*]}"
         log "arch-chroot \"${rootMount}\" pacman -Syy"
     else
-        arch-chroot "${rootMount}" reflector "${reflectorOpts[@]}"
+        sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \
+            "${rootMount}/etc/pacman.conf" && echo "Done! Updating repos..."
         arch-chroot "${rootMount}" pacman -Syy
+    fi
+
+    echo "Enabling Reflector service with timer... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" systemctl enable reflector.service"
+        log "arch-chroot \"${rootMount}\" systemctl enable reflector.timer"
+    else
+        arch-chroot "${rootMount}" systemctl enable reflector.service
+        arch-chroot "${rootMount}" systemctl enable reflector.timer
     fi
 
     install_yay
