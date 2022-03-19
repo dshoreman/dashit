@@ -47,7 +47,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux man-db man-pages sudo)
+    local packages=(base linux man-db man-pages polkit sudo)
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
     packages+=(base-devel dhcpcd git refind reflector)
 
