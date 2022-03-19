@@ -439,11 +439,15 @@ update_host_packages() {
 update_mirrorlist() {
     local filters="country=GB&protocol=https&ip_version=4&use_mirror_status=on"
     local mirrorlistUrl="https://archlinux.org/mirrorlist/?${filters}"
+    local mirrorlist=/etc/pacman.d/mirrorlist
 
     echo "Fetching filtered mirrorlist..."
-    if $DRY_RUN; then
-        log "curl \"${mirrorlistUrl}\" | sed 's/^#S/S/' > /etc/pacman.d/mirrorlist"
+    if grep -q '^IMAGE_ID=archlinux$' /etc/os-release && \
+        grep -q "$(date '+%Y-%m-%s')" $mirrorlist; then
+        echo "  Skipped! Already using recent Arch mirrors."
+    elif $DRY_RUN; then
+        log "curl \"${mirrorlistUrl}\" | sed 's/^#S/S/' > $mirrorlist"
     else
-        curl "${mirrorlistUrl}" | sed 's/^#S/S/' > /etc/pacman.d/mirrorlist
+        curl "${mirrorlistUrl}" | sed 's/^#S/S/' > $mirrorlist
     fi
 }
