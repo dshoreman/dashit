@@ -414,9 +414,9 @@ install_arch_scripts() {
     echo
     echo "Downloading Arch install scripts..."
     if $DRY_RUN; then
-        log "pacman -Syy --noconfirm arch-install-scripts"
+        log "pacman -Syy --needed --noconfirm arch-install-scripts"
     else
-        pacman -Syy --noconfirm arch-install-scripts     # Installs pacstrap, arch-chroot etc
+        pacman -Syy --needed --noconfirm arch-install-scripts     # Installs pacstrap, arch-chroot etc
     fi
 }
 
@@ -429,7 +429,11 @@ update_host_packages() {
     fi
 
     echo "Updating host system..."
-    if $DRY_RUN; then
+    if grep -q '^IMAGE_ID=archlinux$' /etc/os-release; then
+        err "ArchISO: Update skipped!"
+        err "  Limited disk space can prevent upgrades of larger packages."
+        err "  If you encounter issues, fetch a more recent ISO instead."
+    elif $DRY_RUN; then
         log "pacman -Syyu --noconfirm"
     else
         pacman -Syyu --noconfirm
