@@ -246,31 +246,32 @@ set_root() {
 }
 
 prepare_pacman() {
+    local pacmanconf="${rootMount}/etc/pacman.conf"
     echo
     echo "Setting up Pacman"
     echo
 
     echo -n "Enabling colour and chomp progress... "
     if $DRY_RUN; then
-        log "sed -ie 's/^#Color/Color\nILoveCandy/' \"${rootMount}/etc/pacman.conf\""
+        log "sed -ie 's/^#Color/Color\nILoveCandy/' \"${pacmanconf}\""
     else
-        sed -ie 's/^#Color/Color\nILoveCandy/' "${rootMount}/etc/pacman.conf" && echo "Done"
+        sed -ie 's/^#Color/Color\nILoveCandy/' "${pacmanconf}" && echo "Done"
     fi
 
     echo -n "Enabling parallel downloads... "
     if $DRY_RUN; then
-        log "sed -ie 's/^#ParallelDownloads/ParallelDownloads/' \"${rootMount}/etc/pacman.conf\""
+        log "sed -ie 's/^#ParallelDownloads/ParallelDownloads/' \"${pacmanconf}\""
     else
-        sed -ie 's/^#ParallelDownloads/ParallelDownloads/' "${rootMount}/etc/pacman.conf" && echo "Done"
+        sed -ie 's/^#ParallelDownloads/ParallelDownloads/' "${pacmanconf}" && echo "Done"
     fi
 
     echo -n "Enabling multilib repository... "
     if $DRY_RUN; then
-        log "sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \"${rootMount}/etc/pacman.conf\""
+        log "sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \"${pacmanconf}\""
         log "arch-chroot \"${rootMount}\" pacman -Syy"
     else
         sed -ie '/^#\[multilib]$/{N;s/#\[multilib]\n#/[multilib]\n/}' \
-            "${rootMount}/etc/pacman.conf" && echo "Done! Updating repos..."
+            "${pacmanconf}" && echo "Done! Updating repos..."
         arch-chroot "${rootMount}" pacman -Syy
     fi
 
@@ -278,9 +279,11 @@ prepare_pacman() {
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" systemctl enable reflector.service"
         log "arch-chroot \"${rootMount}\" systemctl enable reflector.timer"
+        log "sed -ie 's@^#NoExtract   =\$@NoExtract   = etc/pacman.d/mirrorlist@' \"${pacmanconf}\""
     else
         arch-chroot "${rootMount}" systemctl enable reflector.service
         arch-chroot "${rootMount}" systemctl enable reflector.timer
+        sed -ie 's@^#NoExtract   =$@NoExtract   = etc/pacman.d/mirrorlist@' "${pacmanconf}"
     fi
 
     install_yay
