@@ -51,7 +51,7 @@ get_cpu_value() {
 perform_install() {
     local packages=(base linux man-db man-pages polkit sudo)
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
-    packages+=(base-devel dhcpcd git refind reflector)
+    packages+=(base-devel dhcpcd git refind reflector zsh)
 
     set_target_disk
     set_mountpoint
@@ -83,6 +83,7 @@ post_install() {
     set_date
     set_locale
     set_network
+    set_shell
     create_user
     set_root
     prepare_pacman
@@ -172,6 +173,26 @@ set_network() {
     fi
 }
 
+set_shell() {
+    echo
+    echo "Shell setup"
+    echo
+
+    echo -n "Setting default shell to zsh... "
+    if $DRY_RUN; then
+        log "sed -ie 's@^SHELL=/bin/bash\$@SHELL=/bin/zsh@' \"${rootMount}/etc/default/useradd\""
+    else
+        sed -ie 's@^SHELL=/bin/bash$@SHELL=/bin/zsh@' "${rootMount}/etc/default/useradd" && echo "Done"
+    fi
+
+    echo -n "Removing redundant .bash files from user skeleton... "
+    if $DRY_RUN; then
+        log "rm \"${rootMount}\"/etc/skel/.bash*"
+    else
+        rm "${rootMount}"/etc/skel/.bash* && echo "Done"
+    fi
+}
+
 create_user() {
     local groups="adm,games,uucp,systemd-journal,wheel"
 
@@ -236,11 +257,12 @@ set_root() {
     echo
 
     if $DRY_RUN; then
-        log "systemd-firstboot --root \"${rootMount}\" --copy-root-password --force"
+        log "systemd-firstboot --root \"${rootMount}\" --copy-root-password --copy-root-shell --force"
     else
         systemd-firstboot \
             --root "${rootMount}" \
             --copy-root-password \
+            --copy-root-shell \
             --force && echo "Done"
     fi
 }
