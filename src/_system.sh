@@ -10,10 +10,12 @@ install_arch() {
             3)
                 set_username ;;
             i)
+                check_root_pass
                 perform_install
                 break ;;
             I)
                 AUTO_INSTALL=true
+                check_root_pass
                 provision_disk
                 provision_partition
                 prepare_host
@@ -199,15 +201,47 @@ create_user() {
     fi
 }
 
+check_root_pass() {
+    local should_set_root
+
+    getent shadow root | grep -q '^root::' || return 0
+
+    echo
+    err "Missing root password!"
+    echo
+    echo "  Root's password will be copied from the host machine,"
+    echo "   but the root account currently has no password set."
+    echo
+
+    while true; do
+        read -rn1 -p "  Set root password now? [Yn] " should_set_root
+        echo
+
+        case "$should_set_root" in
+            y|"")
+                # Only break from loop on success to allow n chances
+                echo; passwd && break ;;
+            n)
+                echo "Continuing without root password..."
+                break ;;
+            *)
+                err "Invalid option" ;;
+        esac
+    done
+}
+
 set_root() {
     echo
     echo "Setting root password"
     echo
 
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" passwd"
+        log "systemd-firstboot --root \"${rootMount}\" --copy-root-password --force"
     else
-        arch-chroot "${rootMount}" passwd && echo "Done"
+        systemd-firstboot \
+            --root "${rootMount}" \
+            --copy-root-password \
+            --force && echo "Done"
     fi
 }
 
