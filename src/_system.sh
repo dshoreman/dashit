@@ -9,6 +9,8 @@ install_arch() {
                 set_hostname ;;
             3)
                 set_username ;;
+            4)
+                set_initramfs_package ;;
             i)
                 check_root_pass
                 perform_install
@@ -59,6 +61,10 @@ perform_install() {
 
     if [ -n "$cpuPackage" ]; then
         packages+=("$cpuPackage")
+    fi
+
+    if [ -n "$initramfsPackage" ]; then
+        packages+=("$initramfsPackage")
     fi
 
     if $DRY_RUN; then
@@ -397,6 +403,7 @@ print_install_menu() {
     echo " [ 1] Set microcode package (${cpuPackage:-none})"
     echo " [ 2] Set a hostname (${systemHostname:-none})"
     echo " [ 3] Set default sudo user (${systemUser:-none})"
+    echo " [ 4] Set initramfs generator (${initramfsPackage:-all})"
     echo
     echo " [ i] Perform install"
     echo " [ I] Perform clean install (runs all steps on main menu)"
@@ -466,6 +473,47 @@ set_username() {
         read -rp "Enter a new username: " usernameAnswer
     done
     systemUser="${usernameAnswer}"
+}
+
+set_initramfs_package() {
+    local answer selected
+    tput clear
+    echo
+    echo " Initial RAMDisk Generator"
+    echo
+    echo "The following providers are available:"
+    echo
+    echo " [ 1] mkinitcpio"
+    echo " [ 2] Booster"
+    echo " [ 3] Dracut"
+    echo
+    echo "Note this option only sets the package(s) to install."
+    echo -e "Some parts of DASHit \e[4mmay\e[24m target mkinitcpio explicitly."
+    echo
+    echo "To install all packages, enter 'a' or 'all'."
+
+    case "${initramfsPackage:-mkinitcpio}" in
+        mkinitcpio) selected=1 ;;
+        booster) selected=2 ;;
+        dracut) selected=3 ;;
+        "") selected="all" ;;
+    esac
+
+    while [ -z "$answer" ]; do
+        echo
+        read -rp "Select package: [${selected}] " answer
+        answer="${answer:-$selected}"
+
+        case "${answer,,}" in
+            a|all) initramfsPackage="" ;;
+            1) initramfsPackage=mkinitcpio ;;
+            2) initramfsPackage=booster ;;
+            3) initramfsPackage=dracut ;;
+            *)
+                err "Invalid option '${answer}'!"
+                answer="" ;;
+        esac
+    done
 }
 
 install_arch_scripts() {
