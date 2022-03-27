@@ -239,7 +239,7 @@ set_shell() {
 }
 
 create_user() {
-    local groups="adm,games,uucp,systemd-journal,wheel"
+    local groups="users,adm,games,uucp,systemd-journal,wheel"
 
     echo
     echo "Creating user account"
@@ -247,9 +247,23 @@ create_user() {
 
     echo -n "Creating new user... "
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" useradd -mg users -G $groups \"${systemUser}\""
+        log "arch-chroot \"${rootMount}\" useradd -mUG $groups \"${systemUser}\""
     else
-        arch-chroot "${rootMount}" useradd -mg users -G $groups "${systemUser}" && echo "Done"
+        arch-chroot "${rootMount}" useradd -mUG $groups "${systemUser}" && echo "Done"
+    fi
+
+    echo -n "Cloning dotfiles... "
+    branch="${DASHIT_DOTFILES_BRANCH:-master}"
+    clonePath="/home/${systemUser}/${DASHIT_DOTFILES_DIR:-.files}"
+    if [[ -n $DASHIT_DOTFILES_REPO ]] && $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" git clone -b \"${branch}\" \"${DASHIT_DOTFILES_REPO}\" \"${clonePath}\""
+        log "arch-chroot \"${rootMount}\" chown -R \"${systemUser}\":\"${systemUser}\" \"${clonePath}\""
+    elif [[ -n $DASHIT_DOTFILES_REPO ]]; then
+        arch-chroot "$rootMount" git clone -b "$branch" "$DASHIT_DOTFILES_REPO" "$clonePath" \
+            && arch-chroot "$rootMount" chown -R "${systemUser}":"${systemUser}" "$clonePath" \
+            && echo "Done"
+    else
+        echo "Skipped!"
     fi
 
     echo -n "Adding ${systemUser} to sudoers... "
