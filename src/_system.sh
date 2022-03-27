@@ -67,6 +67,45 @@ perform_install() {
         packages+=("$initramfsPackage")
     fi
 
+    if [ -n "$DASHIT_ENVIRONMENTS" ]; then
+        for env_name in ${DASHIT_ENVIRONMENTS//,/ }; do case $env_name in
+            i3) packages+=(i3-gaps dunst redshift rofi xorg-server xorg-xinit xorg-xinput) ;;
+            kde) packages+=(plasma-meta plasma-wayland-session) ;;
+            kde-full) packages+=(pasma-meta plasma-wayland-session kde-applications-meta) ;;
+            kde-minimal) packages+=(plasma-desktop plasma-wayland-session) ;;
+            sway) packages+=(sway bemenu-wayland dunst waybar) ;;
+            *) err "Unsupported environemnt '${env_name}'"
+        esac; done
+    fi
+    if [ -n "$DASHIT_TERMINALS" ]; then
+        for termpkg in ${DASHIT_TERMINALS//,/ }; do case $termpkg in
+            alacritty) packages+=(alacritty) ;;
+            crt|coolretro|cool-retro-term) packages+=(cool-retro-term) ;;
+            deepin) packages+=(deepin-terminal) ;;
+            foot) packages+=(foot) ;;
+            kitty) packages+=(kitty) ;;
+            konsole) packages+=(konsole) ;;
+            liri) packages+=(liri-terminal) ;;
+            qterm|qterminal) packages+=(qterminal) ;;
+            station) packages+=(maui-station) ;;
+            terminology) packages+=(terminology) ;;
+            urxvt|rxvt-unicode) packages+=(rxvt-unicode) ;;
+            xterm) packages+=(xterm) ;;
+            zutty) packages+=(zutty) ;;
+            deepin-gtk) packages+=(deepin-terminal-gtk) ;;
+            gnome) packages+=(gnome-terminal) ;;
+            lxt|lxterm|lxterminal) packages+=(lxterminal) ;;
+            mate) packages+=(mate-terminal) ;;
+            pantheon) packages+=(pantheon-terminal) ;;
+            sakura) packages+=(sakura) ;;
+            terminator) packages+=(terminator) ;;
+            termite) packages+=(termite termite-terminfo) ;;
+            tilix) packages+=(tilix) ;;
+            xfce) packages+=(xfce4-terminal) ;;
+            *) err "Unsupported terminal '${termpkg}'"
+        esac; done
+    fi
+
     if $DRY_RUN; then
         log "pacstrap /mnt ${packages[*]}"
     else
