@@ -51,7 +51,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux man-db man-pages polkit sudo)
+    local packages=(base linux man-db man-pages polkit sudo) aurPackages=()
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
     packages+=(base-devel dhcpcd git refind reflector zsh)
 
@@ -69,7 +69,10 @@ perform_install() {
 
     if [ -n "$DASHIT_ENVIRONMENTS" ]; then
         for env_name in ${DASHIT_ENVIRONMENTS//,/ }; do case $env_name in
-            i3) packages+=(i3-gaps dunst redshift rofi xorg-server xorg-xinit xorg-xinput) ;;
+            i3)
+                packages+=(i3-gaps dunst redshift rofi xorg-server xorg-xinit xorg-xinput)
+                aurPackages+=(polybar polybar-scripts-git)
+                ;;
             kde) packages+=(plasma-meta plasma-wayland-session) ;;
             kde-full) packages+=(pasma-meta plasma-wayland-session kde-applications-meta) ;;
             kde-minimal) packages+=(plasma-desktop plasma-wayland-session) ;;
@@ -113,6 +116,8 @@ perform_install() {
         pacstrap /mnt "${packages[@]}" || pacstrap /mnt "${packages[@]}"
     fi
 
+    create_firstboot_scripts
+
     post_install
     isInstalled=1
 
@@ -133,6 +138,99 @@ post_install() {
     set_root
     prepare_pacman
     install_refind
+}
+
+create_firstboot_scripts() {
+    local rootScript rootService userScript userService
+
+    rootScript=$(cat <<EOF
+$(firstboot_header root 1 2)
+echo "Before continuing, you'll need to set your password."
+echo
+passwd "\$DASHIT_USER"
+echo
+echo "Enabling sticky boot messages on all TTYs..."
+mkdir -p /etc/systemd/system/getty@.service.d
+echo -e "[Service]\nTTYVTDisallocate=no" > /etc/systemd/system/getty@.service.d/noclear.conf
+echo
+echo "Enabling numlock on boot..."
+echo -e "[Service]\nExecStartPre=/bin/sh -c 'setleds -D +num < /dev/%I'" \
+    > /etc/systemd/system/getty@.service.d/activate-numlock.conf
+systemctl daemon-reload
+EOF
+    ); userScript=$(cat <<EOF
+$(firstboot_header user 2 2)
+EOF
+    ); rootService=$(cat <<EOF
+[Unit]
+Description=DASHit first-boot root script
+Before=dashit.first-boot.user.service
+After=network-online.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+TTYPath=/dev/tty4
+ExecStartPre=/usr/bin/chvt 4
+ExecStart=/firstboot.root.sh
+StandardInput=tty
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    ); userService=$(cat <<EOF
+[Unit]
+Description=DASHit first-boot user script
+Before=systemd-logind.service getty@tty1.service
+After=dashit.first-boot.root.service
+Wants=dashit.first-boot.root.service
+
+[Service]
+User=${systemUser}
+Group=${systemUser}
+Type=oneshot
+TTYPath=/dev/tty4
+ExecStart=/firstboot.user.sh
+StandardInput=tty
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    )
+
+    if [[ -n "${aurPackages[*]}" ]]; then
+        userScript+=$(cat <<EOF
+echo "Some core packages are only available in the AUR."
+echo "Installing them now with yay..."
+yay --noconfirm --removemake -S --needed ${aurPackages[*]}
+EOF
+        )
+    else
+        userScript="$(firstboot_header user 2 2)"
+    fi
+
+    echo "Writing first-boot scripts..."
+    if $DRY_RUN; then
+        log "echo \"$rootScript\" > \"${rootMount}/firstboot.root.sh\""
+        log "echo \"$userScript\" > \"${rootMount}/firstboot.user.sh\""
+    else
+        echo "$rootScript" > "${rootMount}/firstboot.root.sh"
+        echo "$userScript" > "${rootMount}/firstboot.user.sh"
+        chmod +x "${rootMount}"/firstboot.*.sh
+    fi
+
+    echo "Creating first-boot services... "
+    if $DRY_RUN; then
+        log "echo \"$rootScript\" > \"${rootMount}/etc/systemd/system/dashit.first-boot.root.service\""
+        log "echo \"$userScript\" > \"${rootMount}/etc/systemd/system/dashit.first-boot.user.service\""
+        log "arch-chroot \"${rootMount}\" systemctl enable dashit.first-boot.root.service"
+        log "arch-chroot \"${rootMount}\" systemctl enable dashit.first-boot.user.service"
+    else
+        echo "$rootService" > "${rootMount}/etc/systemd/system/dashit.first-boot.root.service"
+        echo "$userService" > "${rootMount}/etc/systemd/system/dashit.first-boot.user.service"
+        arch-chroot "${rootMount}" systemctl enable dashit.first-boot.root.service
+        arch-chroot "${rootMount}" systemctl enable dashit.first-boot.user.service
+    fi
 }
 
 generate_fstab() {

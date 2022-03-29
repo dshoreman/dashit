@@ -12,3 +12,15 @@ unavailable() {
     err "This option is currently unavailable"
     exit 2
 }
+
+firstboot_header() {
+    cat <<EOF
+#!/usr/bin/env bash
+echo; echo "##################################"
+echo "##   DASHit First Boot Script   ##"
+echo "###        Step: $2 of $3        ###"
+echo "########### ${1^^} MODE ############"
+echo
+echo
+EOF
+}
