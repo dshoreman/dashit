@@ -51,7 +51,7 @@ get_cpu_value() {
 }
 
 perform_install() {
-    local packages=(base linux man-db man-pages polkit sudo) aurPackages=()
+    local packages=(base linux man-db man-pages polkit sudo) aurPackages=() xinitrc=""
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
     packages+=(base-devel git refind reflector zsh)
 
@@ -70,8 +70,9 @@ perform_install() {
     if [ -n "$DASHIT_ENVIRONMENTS" ]; then
         for env_name in ${DASHIT_ENVIRONMENTS//,/ }; do case $env_name in
             i3)
-                packages+=(i3-gaps dunst redshift rofi xorg-server xorg-xinit xorg-xinput)
+                packages+=(i3-gaps dunst numlockx picom redshift rofi xorg-server xorg-xinit xorg-xinput)
                 aurPackages+=(polybar polybar-scripts-git)
+                xinitrc="numlockx &\npicom &\nredshift-gtk &\nexec i3"
                 ;;
             kde) packages+=(plasma-meta plasma-wayland-session) ;;
             kde-full) packages+=(pasma-meta plasma-wayland-session kde-applications-meta) ;;
@@ -143,6 +144,11 @@ post_install() {
 create_firstboot_scripts() {
     local rootScript rootService userScript userService
 
+    if [[ -n "$xinitrc" ]]; then
+        xinitrc="[[ -f ~/.xinitrc ]] || echo 'No xinitrc found, creating one...'\n"
+        xinitrc+="[[ -f ~/.xinitrc ]] || echo \"$xinitrc\" > ~/.xinitrc\n"
+    fi
+
     rootScript=$(cat <<EOF
 $(firstboot_header root 1 2 "$systemUser")
 echo "Before continuing, you'll need to set your password."
@@ -172,6 +178,12 @@ if [[ -f "\$fbRoot" ]]; then
     echo -e "Success!\nRunning custom script...\n\n"
     bash "\$DOTFILES_PATH/dashit/firstboot.user.bash"
 else echo "None found."; fi
+echo
+echo "Checking for an xinit rc file in your home directory..."
+${xinitrc}
+echo -e "\n\n\n\nSetup complete!\n\n\nYou can get back here by switching to TTY4.\n\n"
+read -rsn1 -p \$'Press any key to continue...\n'
+sudo chvt 1
 EOF
     ); rootService=$(cat <<EOF
 [Unit]
