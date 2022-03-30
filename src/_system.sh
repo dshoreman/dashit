@@ -144,7 +144,7 @@ create_firstboot_scripts() {
     local rootScript rootService userScript userService
 
     rootScript=$(cat <<EOF
-$(firstboot_header root 1 2)
+$(firstboot_header root 1 2 "$systemUser")
 echo "Before continuing, you'll need to set your password."
 echo
 passwd "\$DASHIT_USER"
@@ -157,9 +157,21 @@ echo "Enabling numlock on boot..."
 echo -e "[Service]\nExecStartPre=/bin/sh -c 'setleds -D +num < /dev/%I'" \
     > /etc/systemd/system/getty@.service.d/activate-numlock.conf
 systemctl daemon-reload
+echo -n "Checking for a first-boot root script in your dotfiles... "
+fbRoot="\$DOTFILES_PATH/dashit/firstboot.root.bash"
+if [[ -f "\$fbRoot" ]]; then
+    echo -e "Success!\nRunning custom script...\n\n"
+    bash "\$DOTFILES_PATH/dashit/firstboot.root.bash"
+else echo "None found."; fi
 EOF
     ); userScript=$(cat <<EOF
-$(firstboot_header user 2 2)
+$(firstboot_header user 2 2 "$systemUser")
+echo -n "Checking for a first-boot user script in your dotfiles... "
+fbRoot="\$DOTFILES_PATH/dashit/firstboot.user.bash"
+if [[ -f "\$fbRoot" ]]; then
+    echo -e "Success!\nRunning custom script...\n\n"
+    bash "\$DOTFILES_PATH/dashit/firstboot.user.bash"
+else echo "None found."; fi
 EOF
     ); rootService=$(cat <<EOF
 [Unit]
