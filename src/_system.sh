@@ -53,7 +53,7 @@ get_cpu_value() {
 perform_install() {
     local packages=(base linux man-db man-pages polkit sudo) aurPackages=()
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
-    packages+=(base-devel dhcpcd git refind reflector zsh)
+    packages+=(base-devel git refind reflector zsh)
 
     set_target_disk
     set_mountpoint
@@ -308,11 +308,15 @@ set_network() {
         echo "${systemHostname}" > "${rootMount}/etc/hostname" && echo "Done"
     fi
 
-    echo "Enabling DHCP..."
+    echo "Enabling network manager..."
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" systemctl enable dhcpcd.service"
+        log "arch-chroot \"${rootMount}\" systemctl enable systemd-networkd.service"
+        log "arch-chroot \"${rootMount}\" systemctl enable systemd-resolved.service"
+        log "arch-chroot \"${rootMount}\" ln -srf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf"
     else
-        arch-chroot "${rootMount}" systemctl enable dhcpcd.service && echo "Done"
+        arch-chroot "${rootMount}" systemctl enable systemd-networkd.service && echo "Done"
+        arch-chroot "${rootMount}" systemctl enable systemd-resolved.service && echo "Done"
+        arch-chroot "${rootMount}" ln -srf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
     fi
 }
 
