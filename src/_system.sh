@@ -53,7 +53,7 @@ get_cpu_value() {
 perform_install() {
     local packages=(base linux man-db man-pages polkit sudo) aurPackages=() xinitrc=""
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
-    packages+=(base-devel git refind reflector zsh)
+    packages+=(base-devel htop git openssh refind reflector zsh)
 
     set_target_disk
     set_mountpoint
@@ -67,6 +67,12 @@ perform_install() {
         packages+=("$initramfsPackage")
     fi
 
+    if [ -n "$DASHIT_EXTRA_UTILS" ]; then
+        packages+=(bat fd fzf lsof mtr pv ripgrep tree rsync)
+    fi
+    if [ -n "$DASHIT_EXTRA_EXTRACTORS" ]; then
+        packages+=(p7zip unrar unzip)
+    fi
     if [ -n "$DASHIT_ENVIRONMENTS" ]; then
         for env_name in ${DASHIT_ENVIRONMENTS//,/ }; do case $env_name in
             i3)
@@ -107,6 +113,26 @@ perform_install() {
             tilix) packages+=(tilix) ;;
             xfce) packages+=(xfce4-terminal) ;;
             *) err "Unsupported terminal '${termpkg}'"
+        esac; done
+    fi
+    if [ -n "$DASHIT_BROWSERS" ]; then
+        if [[ "${DASHIT_BROWSERS[*]}" == "* firefox*" ]] && [ -n "$DASHIT_FF_LOCALE" ]; then
+            ffSuffix="-i18n-${DASHIT_FF_LOCALE}"
+        fi
+        for browser in ${DASHIT_BROWSERS//,/ }; do case $browser in
+            links|lynx|elinks|w3m|seamonkey|chromium|opera|vivaldi) packages+=("$browser") ;;
+            falkon|konqueror|qutebrowser|min|eolie|epiphany|midori|vimb|otter-browser)
+                packages+=("$browser") ;;
+            brave|dot|icecat|librewolf|waterfox-current|waterfox-classic|waterfox-g3)
+                aurPackages+=("$browser-bin") ;;
+            chrome|chrome-beta|chrome-dev) aurPackages+=("google-${browser}") ;;
+            badwolf|browsh|ephemeral|firedragon|google-chrome|nyxt|slimjet|surf)
+                aurPackages+=("$browser") ;;
+            firefox) packages+=("firefox${ffSuffix}") ;;
+            tor|torbrowser) aurPackages+=(torbrowser-launcher) ;;
+            firefox-dev|firefox-developer-edition) packages+=("firefox-developer-edition${ffSuffix}") ;;
+            firefox-esr|firefox-esr-bin|firefox-beta|firefox-beta-bin|firefox-nightly)
+                aurPackages+=("${browser}${ffSuffix}") ;;
         esac; done
     fi
 
