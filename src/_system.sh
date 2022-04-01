@@ -354,6 +354,13 @@ set_network() {
         echo "${systemHostname}" > "${rootMount}/etc/hostname" && echo "Done"
     fi
 
+    echo -n "Writing basic DHCP-enabled config... "
+    if $DRY_RUN; then
+        log "echo -e \"[Match]\nName=en*\n\n[Network]\nDHCP=yes\" > \"${rootMount}/etc/systemd/network/20-wired.network\""
+    else
+        echo -e "[Match]\nName=en*\n\n[Network]\nDHCP=yes" > "${rootMount}/etc/systemd/network/20-wired.network" && echo "Done"
+    fi
+
     echo "Enabling network manager..."
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" systemctl enable systemd-networkd.service"
