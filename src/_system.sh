@@ -168,11 +168,16 @@ post_install() {
 }
 
 create_firstboot_scripts() {
-    local rootScript rootService userScript userService
+    local rootScript rootService userScript userScriptExtra="\n" userService
 
     if [[ -n "$xinitrc" ]]; then
         xinitrc="[[ -f ~/.xinitrc ]] || echo 'No xinitrc found, creating one...'\n"
         xinitrc+="[[ -f ~/.xinitrc ]] || echo \"$xinitrc\" > ~/.xinitrc\n"
+    fi
+    if [[ -n "${aurPackages[*]}" ]]; then
+        userScriptExtra+="echo 'Some core packages are only available in the AUR.'\n"
+        userScriptExtra+="echo 'Installing them now with yay...'\n"
+        userScriptExtra+="yay --noconfirm --removemake -S --needed ${aurPackages[*]}\n"
     fi
 
     rootScript=$(cat <<EOF
@@ -198,6 +203,8 @@ else echo "None found."; fi
 EOF
     ); userScript=$(cat <<EOF
 $(firstboot_header user 2 2 "$systemUser")
+${userScriptExtra}
+echo
 echo -n "Checking for a first-boot user script in your dotfiles... "
 fbRoot="\$DOTFILES_PATH/dashit/firstboot.user.bash"
 if [[ -f "\$fbRoot" ]]; then
@@ -247,17 +254,6 @@ StandardInput=tty
 WantedBy=multi-user.target
 EOF
     )
-
-    if [[ -n "${aurPackages[*]}" ]]; then
-        userScript+=$(cat <<EOF
-echo "Some core packages are only available in the AUR."
-echo "Installing them now with yay..."
-yay --noconfirm --removemake -S --needed ${aurPackages[*]}
-EOF
-        )
-    else
-        userScript="$(firstboot_header user 2 2)"
-    fi
 
     echo "Writing first-boot scripts..."
     if $DRY_RUN; then
