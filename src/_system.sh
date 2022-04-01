@@ -168,11 +168,11 @@ post_install() {
 }
 
 create_firstboot_scripts() {
-    local rootScript rootService userScript userScriptExtra="\n" userService
+    local rootScript rootService userScript userScriptExtra="\n" userService xinitCmd="\n"
 
     if [[ -n "$xinitrc" ]]; then
-        xinitrc="[[ -f ~/.xinitrc ]] || echo 'No xinitrc found, creating one...'\n"
-        xinitrc+="[[ -f ~/.xinitrc ]] || echo \"$xinitrc\" > ~/.xinitrc\n"
+        xinitCmd="[[ -f ~/.xinitrc ]] || echo 'No xinitrc found, creating one...'\n"
+        xinitCmd+="[[ -f ~/.xinitrc ]] || echo -e '$xinitrc' > ~/.xinitrc\n"
     fi
     if [[ -n "${aurPackages[*]}" ]]; then
         userScriptExtra+="echo 'Some core packages are only available in the AUR.'\n"
@@ -213,7 +213,8 @@ if [[ -f "\$fbRoot" ]]; then
 else echo "None found."; fi
 echo
 echo "Checking for an xinit rc file in your home directory..."
-${xinitrc}
+${xinitCmd}
+echo
 echo -e "\n\n\n\nSetup complete!\n\n\nYou can get back here by switching to TTY4.\n\n"
 read -rsn1 -p \$'Press any key to continue...\n'
 sudo chvt 1
