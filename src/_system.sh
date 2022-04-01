@@ -362,14 +362,16 @@ set_network() {
     fi
 
     echo "Enabling network manager..."
+    local resolvLink="ln -srf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf"
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" systemctl enable systemd-networkd.service"
         log "arch-chroot \"${rootMount}\" systemctl enable systemd-resolved.service"
-        log "arch-chroot \"${rootMount}\" ln -srf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf"
+        log "arch-chroot \"${rootMount}\" bash -c \"umount /etc/resolv.conf || echo; $resolvLink\""
     else
-        arch-chroot "${rootMount}" systemctl enable systemd-networkd.service && echo "Done"
-        arch-chroot "${rootMount}" systemctl enable systemd-resolved.service && echo "Done"
-        arch-chroot "${rootMount}" ln -srf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+        arch-chroot "${rootMount}" systemctl enable systemd-networkd.service
+        arch-chroot "${rootMount}" systemctl enable systemd-resolved.service
+        arch-chroot "${rootMount}" bash -c "umount /etc/resolv.conf || echo; $resolvLink"
+        echo "Done"
     fi
 }
 
