@@ -188,16 +188,16 @@ passwd "\$DASHIT_USER"
 echo
 echo "Enabling sticky boot messages on all TTYs..."
 mkdir -p /etc/systemd/system/getty@.service.d
-echo -e "[Service]\nTTYVTDisallocate=no" > /etc/systemd/system/getty@.service.d/noclear.conf
+echo -e "[Service]\\nTTYVTDisallocate=no" > /etc/systemd/system/getty@.service.d/noclear.conf
 echo
 echo "Enabling numlock on boot..."
-echo -e "[Service]\nExecStartPre=/bin/sh -c 'setleds -D +num < /dev/%I'" \
+echo -e "[Service]\\nExecStartPre=/bin/sh -c 'setleds -D +num < /dev/%I'" \
     > /etc/systemd/system/getty@.service.d/activate-numlock.conf
 systemctl daemon-reload
 echo -n "Checking for a first-boot root script in your dotfiles... "
 fbRoot="\$DOTFILES_PATH/dashit/firstboot.root.bash"
 if [[ -f "\$fbRoot" ]]; then
-    echo -e "Success!\nRunning custom script...\n\n"
+    echo -e "Success!\\nRunning custom script...\\n\\n"
     bash "\$DOTFILES_PATH/dashit/firstboot.root.bash"
 else echo "None found."; fi
 EOF
@@ -208,15 +208,15 @@ echo
 echo -n "Checking for a first-boot user script in your dotfiles... "
 fbRoot="\$DOTFILES_PATH/dashit/firstboot.user.bash"
 if [[ -f "\$fbRoot" ]]; then
-    echo -e "Success!\nRunning custom script...\n\n"
+    echo -e "Success!\\nRunning custom script...\\n\\n"
     bash "\$DOTFILES_PATH/dashit/firstboot.user.bash"
 else echo "None found."; fi
 echo
 echo "Checking for an xinit rc file in your home directory..."
 ${xinitCmd}
 echo
-echo -e "\n\n\n\nSetup complete!\n\n\nYou can get back here by switching to TTY4.\n\n"
-read -rsn1 -p \$'Press any key to continue...\n'
+echo -e "\\n\\n\\n\\nSetup complete!\\n\\n\\nYou can get back here by switching to TTY4.\\n\\n"
+read -rsn1 -p \$'Press any key to continue...\\n'
 sudo chvt 1
 EOF
     ); rootService=$(cat <<EOF
@@ -261,8 +261,8 @@ EOF
         log "echo \"$rootScript\" > \"${rootMount}/firstboot.root.sh\""
         log "echo \"$userScript\" > \"${rootMount}/firstboot.user.sh\""
     else
-        echo "$rootScript" > "${rootMount}/firstboot.root.sh"
-        echo "$userScript" > "${rootMount}/firstboot.user.sh"
+        echo -e "$rootScript" > "${rootMount}/firstboot.root.sh"
+        echo -e "$userScript" > "${rootMount}/firstboot.user.sh"
         chmod +x "${rootMount}"/firstboot.*.sh
     fi
 

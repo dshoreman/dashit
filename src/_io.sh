@@ -16,8 +16,8 @@ unavailable() {
 firstboot_header() {
     cat <<EOF
 #!/usr/bin/env bash
-DASHIT_USER="$4"
-DOTFILES_PATH="/home/\${DASHIT_USER}/${DASHIT_DOTFILES_DIR:-.files}"
+export DASHIT_USER="$4"
+export DOTFILES_PATH="/home/\${DASHIT_USER}/${DASHIT_DOTFILES_DIR:-.files}"
 echo; echo "##################################"
 echo "##   DASHit First Boot Script   ##"
 echo "###        Step: $2 of $3        ###"
