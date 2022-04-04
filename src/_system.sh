@@ -83,7 +83,7 @@ perform_install() {
             kde) packages+=(plasma-meta plasma-wayland-session) ;;
             kde-full) packages+=(pasma-meta plasma-wayland-session kde-applications-meta) ;;
             kde-minimal) packages+=(plasma-desktop plasma-wayland-session) ;;
-            sway) packages+=(sway bemenu-wayland dunst waybar) ;;
+            sway) packages+=(sway bemenu-wayland dunst waybar xorg-xwayland) ;;
             *) err "Unsupported environemnt '${env_name}'"
         esac; done
     fi
