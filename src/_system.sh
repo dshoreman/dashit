@@ -414,10 +414,10 @@ create_user() {
     branch="${DASHIT_DOTFILES_BRANCH:-master}"
     clonePath="/home/${systemUser}/${DASHIT_DOTFILES_DIR:-.files}"
     if [[ -n $DASHIT_DOTFILES_REPO ]] && $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" git clone -b \"${branch}\" \"${DASHIT_DOTFILES_REPO}\" \"${clonePath}\""
+        log "arch-chroot \"${rootMount}\" git clone --recurse-submodules -j5 -b \"${branch}\" \"${DASHIT_DOTFILES_REPO}\" \"${clonePath}\""
         log "arch-chroot \"${rootMount}\" chown -R \"${systemUser}\":\"${systemUser}\" \"${clonePath}\""
     elif [[ -n $DASHIT_DOTFILES_REPO ]]; then
-        arch-chroot "$rootMount" git clone -b "$branch" "$DASHIT_DOTFILES_REPO" "$clonePath" \
+        arch-chroot "$rootMount" git clone --recurse-submodules -j5 -b "$branch" "$DASHIT_DOTFILES_REPO" "$clonePath" \
             && arch-chroot "$rootMount" chown -R "${systemUser}":"${systemUser}" "$clonePath" \
             && echo "Done"
     else
