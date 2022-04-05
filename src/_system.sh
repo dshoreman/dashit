@@ -317,14 +317,14 @@ set_date() {
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" timedatectl set-ntp true"
     else
-        arch-chroot "${rootMount}" timedatectl set-ntp true && echo "Done"
+        arch-chroot "${rootMount}" timedatectl set-ntp true && sleep 3 && echo "Done"
     fi
 
     echo -n "Generating /etc/adjtime... "
     if $DRY_RUN; then
         log "arch-chroot \"${rootMount}\" hwclock --systohc"
     else
-        arch-chroot "${rootMount}" hwclock --systohc && echo "Done"
+        arch-chroot "${rootMount}" hwclock --utc --systohc && echo "Done"
     fi
 }
 
