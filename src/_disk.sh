@@ -39,8 +39,7 @@ set_target_disk() {
 }
 
 partition_disk() {
-    local efiSize=267 offset=2048 dataStart
-    dataStart=$((offset*efiSize + offset))
+    local efiSize=267 sgdisk=sgdisk
 
     print_partition_layout
     prompt_before_erase
@@ -48,20 +47,14 @@ partition_disk() {
     echo "Partitioning..."
     echo
     if $DRY_RUN; then
-        log "parted --script --align optimal \"${targetDevice}\" \\"
-        log "    mklabel gpt \\"
-        log "    mkpart \"efi\" fat32 ${offset}s $((dataStart-1))s \\"
-        log "    mkpart \"arch\" btrfs ${dataStart}s 100% \\"
-        log "    set 1 esp on \\"
-        log "    print"
-    else
-        parted --script --align optimal "${targetDevice}" \
-            mklabel gpt \
-            mkpart "efi" fat32 ${offset}s $((dataStart-1))s \
-            mkpart "arch" btrfs ${dataStart}s 100% \
-            set 1 esp on \
-            print
+        sgdisk="sgdisk --pretend"
     fi
+
+    # TODO: To support ARM/ARM64 the 8304 typecode needs to be variable!
+    $sgdisk --clear -g \
+        -n 1:0:+${efiSize}M -t 1:ef00 -c 1:esp \
+        -N 2 -t 2:8304 -c 2:arch \
+        --print "$targetDevice"
 
     echo "Disk partitioned successfully!"
     echo
