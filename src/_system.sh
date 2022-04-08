@@ -47,7 +47,7 @@ prepare_host() {
 }
 
 get_cpu_value() {
-    grep "$1" <<< "$cpuOutput" | cut -d':' -f2 | awk '{$1=$1;print}'
+    grep "^$1" <<< "$cpuOutput" | cut -d':' -f2 | awk '{$1=$1;print}'
 }
 
 perform_install() {
