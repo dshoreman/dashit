@@ -632,7 +632,7 @@ print_system_info() {
 
     process_system_info
     echo
-    echo "Current System: ${cpuType} (${architecture})"
+    echo "Current System: ${cpuType} (${architecture} ${byteOrder})"
     echo "${cpuModel}"
     echo
     echo -e "Dry run: $($DRY_RUN && echo -e "\e[1;32menabled" || echo -e "\e[1;31mdisabled")\e[0m"
@@ -645,6 +645,7 @@ process_system_info() {
     architecture="$(get_cpu_value 'Architecture')"
     cpuModel="$(get_cpu_value 'Model name')"
     cpuType="$(get_cpu_value 'Vendor ID')"
+    byteOrder="$(get_cpu_value 'Byte Order')"
 }
 
 set_cpu_package() {
