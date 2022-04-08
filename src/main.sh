@@ -12,7 +12,7 @@ source "${SCRIPT_ROOT}/_welcome.sh"
 trap 'err "Unexpected error; aborting." && exit 1' ERR
 trap 'err "Aborted by user." && exit 1' SIGINT
 
-readonly _VERSION="0.2.0"
+readonly _VERSION="0.2.1"
 
 usage() {
     echo
