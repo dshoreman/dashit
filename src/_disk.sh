@@ -150,6 +150,18 @@ create_subvolumes() {
 
     echo "Subvolumes created!"
     echo
+
+    echo "Setting '@' as the default subvolume... "
+    if $DRY_RUN; then
+        log "btrfs subvolume set-default \$(get_root_subvolume) \"$rootMount\""
+    else
+        btrfs subvolume set-default "$(get_root_subvolume)" "$rootMount" && echo "Done!"
+    fi
+}
+
+get_root_subvolume() {
+    btrfs subvolume show "$rootMount/@" | \
+        grep 'Subvolume ID' | cut -d: -f2 | xargs
 }
 
 mount_disk() {

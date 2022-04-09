@@ -541,17 +541,17 @@ install_refind() {
     fi
 
     echo "Generating refind_linux.conf..."
-    rootFlags="root=PARTLABEL=arch rw rootflags=subvol=@"
+    rootFlags="root=PARTLABEL=arch rw rootflags="
 
     if [ -n "$cpuPackage" ]; then
         echo "Adding @\\boot\\${cpuPackage}.img to enable microcode updates..."
-        rootFlags="${rootFlags} initrd=@\\boot\\${cpuPackage}.img"
+        rootFlags="${rootFlags} initrd=boot\\${cpuPackage}.img"
     fi
 
     bootConf=$(cat <<EOF
-"Boot using default options"     "${rootFlags} initrd=@\boot\initramfs-%v.img audit=off"
-"Boot using fallback initramfs"  "${rootFlags} initrd=@\boot\initramfs-%v-fallback.img"
-"Boot to terminal"               "${rootFlags} initrd=@\boot\initramfs-%v.img systemd.unit-multi-user.target"
+"Boot using default options"     "${rootFlags} initrd=boot\initramfs-%v.img audit=off"
+"Boot using fallback initramfs"  "${rootFlags} initrd=boot\initramfs-%v-fallback.img"
+"Boot to terminal"               "${rootFlags} initrd=boot\initramfs-%v.img systemd.unit-multi-user.target"
 EOF
 )
     echo -n "Saving config to /boot/refind_linux.conf... "
