@@ -284,9 +284,11 @@ generate_fstab() {
     echo
     echo -n "Generating fstab..."
     if $DRY_RUN; then
-        log "genfstab -t PARTLABEL \"${rootMount}\" >> \"${rootMount}/etc/fstab\""
+        log "genfstab -t PARTLABEL \"${rootMount}\" | grep -vE \"(^#|^$|/(efi|\s+btrfs))\" |\\"
+        log "    sed 's/compress-force=.*,subvol=/subvol=/' >> \"${rootMount}/etc/fstab\""
     else
-        genfstab -t PARTLABEL "${rootMount}" >> "${rootMount}/etc/fstab" && echo "Done"
+        genfstab -t PARTLABEL "${rootMount}" | grep -vE "(^#|^$|/(efi|\s+btrfs))" |\
+            sed 's/compress-force=.*,subvol=/subvol=/' >> "${rootMount}/etc/fstab" && echo "Done"
     fi
 }
 
@@ -541,7 +543,7 @@ install_refind() {
     fi
 
     echo "Generating refind_linux.conf..."
-    rootFlags="root=PARTLABEL=arch rw rootflags="
+    rootFlags="root=PARTLABEL=arch rw rootflags=noatime,compress-force=zstd:5,space_cache=v2"
 
     if [ -n "$cpuPackage" ]; then
         echo "Adding @\\boot\\${cpuPackage}.img to enable microcode updates..."
@@ -561,13 +563,18 @@ EOF
         echo "$bootConf" > "${rootMount}/boot/refind_linux.conf" && echo "Done"
     fi
 
+    echo -n "Enabling Systemd EFI variable writing... "
+    mod_refind_conf 's/^#\(write_systemd_vars\) \(true\|false\)$/\1 true/'
+
     echo -n "Enabling kernel detection... "
-    sedopt='s/^#\(extra_kernel_version_strings\) \([linux,-ts]\+\)$/\1 linux-hardened,linux-zen,\2/'
-    if $DRY_RUN; then
-        log "sed -ie '${sedopt}' \"${rootMount}/efi/EFI/refind/refind.conf\""
-    else
-        sed -ie "$sedopt" "${rootMount}/efi/EFI/refind/refind.conf"
-    fi
+    mod_refind_conf 's/^#\(extra_kernel_version_strings\) \([linux,-ts]\+\)$/\1 linux-hardened,linux-zen,\2/'
+}
+
+mod_refind_conf() {
+    local refindconf="${rootMount}/efi/EFI/refind/refind.conf"
+
+    if $DRY_RUN; then log "sed -ie '$1' \"$refindconf\""
+    else sed -ie "$1" "$refindconf"; fi
 }
 
 install_yay() {
