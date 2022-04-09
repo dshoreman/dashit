@@ -284,9 +284,9 @@ generate_fstab() {
     echo
     echo -n "Generating fstab..."
     if $DRY_RUN; then
-        log "genfstab -U \"${rootMount}\" >> \"${rootMount}/etc/fstab\""
+        log "genfstab -t PARTLABEL \"${rootMount}\" >> \"${rootMount}/etc/fstab\""
     else
-        genfstab -U "${rootMount}" >> "${rootMount}/etc/fstab" && echo "Done"
+        genfstab -t PARTLABEL "${rootMount}" >> "${rootMount}/etc/fstab" && echo "Done"
     fi
 }
 
@@ -529,7 +529,7 @@ prepare_pacman() {
 }
 
 install_refind() {
-    local bootConf partUuid rootFlags
+    local bootConf rootFlags
     echo
     echo "Installing refind to ${efiPartition}"
     echo
@@ -540,11 +540,8 @@ install_refind() {
         arch-chroot "${rootMount}" refind-install
     fi
 
-    echo "Finding PARTUUID of system partition..."
-    partUuid="$(blkid -o value -s PARTUUID "${dataPartition}")"
-
     echo "Generating refind_linux.conf..."
-    rootFlags="root=PARTUUID=${partUuid} rw rootflags=subvol=@"
+    rootFlags="root=PARTLABEL=arch rw rootflags=subvol=@"
 
     if [ -n "$cpuPackage" ]; then
         echo "Adding @\\boot\\${cpuPackage}.img to enable microcode updates..."
