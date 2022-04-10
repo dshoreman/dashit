@@ -190,6 +190,7 @@ create_firstboot_scripts() {
 
     rootScript=$(cat <<EOF
 $(firstboot_header root 1 2 "$systemUser")
+echo "Waiting for a bit for other tasks to finish..." && sleep 5
 echo "Before continuing, you'll need to set your password."
 echo
 passwd "\$DASHIT_USER"
