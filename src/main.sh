@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+if [[ -z $_DASHIT_LOGGED_IO ]]; then
+    script -c "_DASHIT_LOGGED_IO=1 $0 $*" \
+        -B "${DASHIT_LOG_PATH:-/tmp/dashit.log}" \
+        -T "${DASHIT_LOG_PATH:-/tmp/dashit.log}t"
+    exit
+fi
+
 set -Eeo pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "$0")" > /dev/null 2>&1; pwd -P)"

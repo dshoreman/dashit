@@ -151,6 +151,14 @@ perform_install() {
     echo
     echo "Install complete!"
     echo
+    if [[ -f ${DASHIT_LOG_PATH:-/tmp/dashit.log} ]]; then
+        mkdir -p "${rootMount}/var/log/dashit" && chmod 770 "$_"
+        arch-chroot "${rootMount}" chown "$systemUser" /var/log/dashit
+        cp "${DASHIT_LOG_PATH:-/tmp/dashit.log}" "${rootMount}/var/log/dashit/install.log"
+        cp "${DASHIT_LOG_PATH:-/tmp/dashit.log}t" "${rootMount}/var/log/dashit/install.logt"
+        echo; echo "Dashit's log file has been copied into /var/log/dashit/ on the target system."
+        echo
+    fi
     read -rsn1 -p $'Press any key to continue...\n'
 }
 
@@ -214,9 +222,22 @@ else echo "None found."; fi
 echo
 echo "Checking for an xinit rc file in your home directory..."
 ${xinitCmd}
-echo
-echo -e "\\n\\n\\n\\nSetup complete!\\n\\n\\nYou can get back here by switching to TTY4.\\n\\n"
-read -rsn1 -p \$'Press any key to continue...\\n'
+echo -e "\\n\\n\\n\\n\\n"
+cat <<EOTXT
+ Setup complete!
+
+
+ Full logs are saved in /var/log/dashit and can be replayed with scriptreplay:
+
+   for log in install firstboot.user firstboot.root; do
+     scriptreplay -T /var/log/dashit/\${log}{t,}
+   done
+
+
+ Note: You'll be switched over to TTY1 when you continue.
+       You can get back here by switching to TTY4.
+EOTXT
+read -rsn1 -p \$'\\n\\n\\nPress any key to continue...\\n'
 sudo chvt 1
 EOF
     ); rootService=$(cat <<EOF
@@ -230,7 +251,7 @@ Wants=network-online.target
 Type=oneshot
 TTYPath=/dev/tty4
 ExecStartPre=/usr/bin/chvt 4
-ExecStart=/firstboot.root.sh
+ExecStart=/usr/bin/script -c /firstboot.root.sh -aB /var/log/dashit/firstboot.root.log -T /var/log/dashit/firstboot.root.logt
 StandardInput=tty
 
 [Install]
@@ -248,7 +269,7 @@ User=${systemUser}
 Group=${systemUser}
 Type=oneshot
 TTYPath=/dev/tty4
-ExecStart=/firstboot.user.sh
+ExecStart=/usr/bin/script -c /firstboot.user.sh -aB /var/log/dashit/firstboot.user.log -T /var/log/dashit/firstboot.user.logt
 StandardInput=tty
 
 [Install]
