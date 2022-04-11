@@ -11,6 +11,8 @@ install_arch() {
                 set_username ;;
             4)
                 set_initramfs_package ;;
+            5)
+                set_video_driver ;;
             i)
                 check_root_pass
                 perform_install
@@ -172,6 +174,9 @@ post_install() {
     create_user
     set_root
     prepare_pacman
+
+    # GPU must be done after pacman prep for the multilib repo
+    install_video_drivers
     install_refind
 }
 
@@ -300,6 +305,48 @@ EOF
         arch-chroot "${rootMount}" systemctl enable dashit.first-boot.root.service
         arch-chroot "${rootMount}" systemctl enable dashit.first-boot.user.service
     fi
+}
+
+install_video_drivers() {
+    local kmsModule packages
+
+    echo -e "\nChecking video drivers..."
+    case ${DASHIT_GPU_DRIVER,,} in
+        amd)
+            packages=(libva-mesa-driver mesa mesa-vdpau radeontop vulkan-radeon xf86-video-amdgpu)
+            packages+=(lib32-libva-mesa-driver lib32-mesa lib32-mesa-vdpau lib32-vulkan-radeon) ;;
+        intel)
+            kmsModule=i915
+            packages=(intel-media-driver mesa lib32-mesa vulkan-intel lib32-vulkan-intel) ;;
+        intel-legacy)
+            kmsModule=i915
+            packages=(libva-intel-driver mesa lib32-mesa) ;;
+        nvidia)
+            kmsModule="nvidia nvidia_modeset nvidia_uvm nvidia_drm"
+            packages=(nvidia nvidia-utils) ;;
+        *) err "Invalid or no drivers selected! Continuing without any." ;;
+    esac
+
+    echo "Found ${#packages[@]} packages to install!"
+    (( ${#packages[@]} > 0 )) || return
+
+    if [[ -n $kmsModule ]]; then
+        echo "Adding kernel modules (${kmsModule// /, }) for early KMS..."
+        if $DRY_RUN; then
+            log "sed -i -e \"s/^MODULES=(/MODULES=(${kmsModule}/\" \"${rootMount}/etc/mkinitcpio.conf\""
+        else
+            sed -i -e "s/^MODULES=(/MODULES=(${kmsModule}/" "${rootMount}/etc/mkinitcpio.conf"
+        fi
+    fi
+
+    echo -e "\nInstalling GPU packages (${packages[*]// /, })..."
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" pacman -Sy --noconfirm \"${packages[*]}\""
+    else
+        arch-chroot "${rootMount}" pacman -Sy --noconfirm "${packages[@]}"
+    fi
+
+    echo -e "\nDone!\n\n"
 }
 
 generate_fstab() {
@@ -641,6 +688,7 @@ print_install_menu() {
     echo " [ 2] Set a hostname (${systemHostname:-none})"
     echo " [ 3] Set default sudo user (${systemUser:-none})"
     echo " [ 4] Set initramfs generator (${initramfsPackage:-all})"
+    echo " [ 5] Select GPU drivers (${DASHIT_GPU_DRIVER:-none})"
     echo
     echo " [ i] Perform install"
     echo " [ I] Perform clean install (runs all steps on main menu)"
@@ -693,6 +741,60 @@ set_cpu_package() {
                 cpuAnswer=
     esac
     done
+}
+
+set_video_driver() {
+    local detected gpuAnswer likelyGpu selected="${DASHIT_GPU_DRIVER:-none}"
+
+    tput clear; echo "Detecting GPU..."
+    detected="$(lspci -v | grep -e VGA -e 3D | tail -n1)"
+    case $detected in
+        *AMD*) likelyGpu=AMD ;;
+        *NVIDIA*) likelyGpu=NVIDIA ;;
+        *Intel*) echo "Seems to be Intel. You're on yer own, bud!" ;;
+    esac
+
+    if [[ -n $likelyGpu ]]; then
+        echo -e "\nLooks like you have an $likelyGpu GPU!\nThis would add the following packages:\n"
+        list_video_packages $likelyGpu
+        read -rsn1 -p $'\n\nIs that correct? [Y/n]\n' useauto
+        if [[ -z $useauto || ${useauto,,} == "y" ]]; then
+            DASHIT_GPU_DRIVER=${likelyGpu,,}
+            return
+        fi
+    fi
+
+    while [[ -z $gpuAnswer ]]; do
+        echo
+        echo "The following drivers are available for selection:"
+        echo
+        echo "         AMD :  $(list_video_packages amd)"
+        echo "       Intel :  $(list_video_packages intel)"
+        echo "Intel-Legacy :  $(list_video_packages intel-legacy)"
+        echo "      NVIDIA :  $(list_video_packages nvidia)"
+        echo
+        read -rp "Which GPU drivers do you want to install? [${selected}] " gpuAnswer
+        gpuAnswer="${gpuAnswer:-$selected}"
+
+        case "${gpuAnswer,,}" in
+            amd|nvidia|intel|intel-legacy) DASHIT_GPU_DRIVER=${gpuAnswer,,} ;;
+            n|no|none) unset DASHIT_GPU_DRIVER ;;
+            *)
+                err "Invalid selection '${gpuAnswer,,}'. Enter 'AMD', 'NVIDIA', 'Intel', 'Intel-legacy' or 'None'."
+                gpuAnswer=
+        esac
+    done
+    export DASHIT_GPU_DRIVER
+}
+
+list_video_packages() {
+    # This list is purely visual (for selection). It is not used by the install function.
+    case ${1,,} in
+        amd) echo "  libva-mesa-driver, xf86-video-amdgpu, mesa, mesa-vdpau, vulkan-radeon and radeontop" ;;
+        intel) echo "  intel-media-driver mesa vulkan-intel" ;;
+        intel-legacy) echo "  libva-intel-driver mesa" ;;
+        nvidia) echo "  nvidia and nvidia-utils" ;;
+    esac
 }
 
 set_hostname() {
