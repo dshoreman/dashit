@@ -712,13 +712,16 @@ EOF
 
     echo -n "Enabling kernel detection... "
     mod_refind_conf 's/^#\(extra_kernel_version_strings\) \([linux,-ts]\+\)$/\1 linux-hardened,linux-zen,\2/'
+
+    echo -n "Enabling graphical boot... "
+    mod_refind_conf 's/^#\(use_graphics_for \)/\1/'
 }
 
 mod_refind_conf() {
     local refindconf="${rootMount}/efi/EFI/refind/refind.conf"
 
     if $DRY_RUN; then log "sed -ie '$1' \"$refindconf\""
-    else sed -ie "$1" "$refindconf"; fi
+    else sed -ie "$1" "$refindconf" && echo "Done!"; fi
 }
 
 install_yay() {
