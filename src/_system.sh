@@ -4,15 +4,15 @@ install_arch() {
 
         case "$choice" in
             1)
-                set_cpu_package ;;
-            2)
-                set_hostname ;;
-            3)
-                set_username ;;
-            4)
                 set_initramfs_package ;;
-            5)
+            2)
+                set_cpu_package ;;
+            3)
                 set_video_driver ;;
+            4)
+                set_hostname ;;
+            5)
+                set_username ;;
             i)
                 check_root_pass
                 perform_install
@@ -757,12 +757,13 @@ print_install_menu() {
     echo " Installation menu"
     print_system_info
     echo
-    echo " [ 1] Set microcode package (${cpuPackage:-none})"
-    echo " [ 2] Set a hostname (${systemHostname:-none})"
-    echo " [ 3] Set default sudo user (${systemUser:-none})"
-    echo " [ 4] Set initramfs generator (${initramfsPackage:-all})"
-    echo " [ 5] Select GPU drivers (${DASHIT_GPU_DRIVER:-none})"
+    echo " [ 1] Set initramfs generator (${initramfsPackage:-all})"
+    echo " [ 2] Set microcode package (${cpuPackage:-none})"
+    echo " [ 3] Select GPU drivers (${DASHIT_GPU_DRIVER:-none})"
     echo
+    echo " [ 4] Set a hostname (${systemHostname:-none})"
+    echo " [ 5] Set default sudo user (${systemUser:-none})"
+    echo;echo
     echo " [ i] Perform install"
     echo " [ I] Perform clean install (runs all steps on main menu)"
     echo
