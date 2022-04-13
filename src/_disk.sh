@@ -138,7 +138,7 @@ set_mountpoint() {
 }
 
 create_subvolumes() {
-    for subvolume in @ @home @varlog @vbox @snapshots; do
+    for subvolume in @ @home @varlog @snapshots @snapshots/root @snapshots/home; do
         echo
         echo "Creating '${subvolume}' subvolume..."
         if $DRY_RUN; then
@@ -185,30 +185,29 @@ mount_subvolumes() {
         mount -o ${mountString}@ "$dataPartition" "${m}"
     fi
 
-    # Create dirs for and mount ESP and other partitions
+    # Create dirs for and mount ESP and other top-level partitions
     if $DRY_RUN; then
-        [ -d "$efiPath" ] || log "mkdir \"${efiPath}\""
+        log "mkdir -vp \"${m}/.snapshots\" \"${efiPath}\" \"${homePath}\" \"${logPath}\""
         log "mount \"$efiPartition\" \"${efiPath}\""
-    else
-        [ -d "$efiPath" ] || mkdir "${efiPath}"
-        mount "$efiPartition" "${efiPath}"
-    fi
-
-    if $DRY_RUN; then
-        [ -d "$homePath" ] || log "mkdir \"${homePath}\""
-        [ -d "$logPath" ] || log "mkdir -p \"${logPath}\""
-    else
-        [ -d "$homePath" ] || mkdir "${homePath}"
-        [ -d "$logPath" ] || mkdir -p "${logPath}"
-    fi
-
-    # Now mount other essential system subvolumes
-    if $DRY_RUN; then
         log "mount -o ${mountString}@home \"$dataPartition\" \"${homePath}\""
         log "mount -o ${mountString}@varlog \"$dataPartition\" \"${logPath}\""
     else
+        mkdir -vp "${efiPath}" "${homePath}" "${logPath}"
+        mount "$efiPartition" "${efiPath}"
         mount -o ${mountString}@home "$dataPartition" "${homePath}"
         mount -o ${mountString}@varlog "$dataPartition" "${logPath}"
+    fi
+
+    # Now create and mount snapshot subvolumes for Snapper
+    # Note these are re-mounted later, but this makes fstab easier.
+    if $DRY_RUN; then
+        log "mkdir -vp \"${m}/.snapshots\" \"${m}/home/.snapshots\""
+        log "mount \"$dataPartition\" \"${rootMount}/.snapshots\""
+        log "mount \"$dataPartition\" \"${rootMount}/home/.snapshots\""
+    else
+        mkdir -vp "${m}/.snapshots" "${m}/home/.snapshots"
+        mount -o ${mountString}@snapshots/root "$dataPartition" "${rootMount}/.snapshots"
+        mount -o ${mountString}@snapshots/home "$dataPartition" "${rootMount}/home/.snapshots"
     fi
 }
 

@@ -55,7 +55,7 @@ get_cpu_value() {
 perform_install() {
     local packages=(base linux man-db man-pages polkit sudo) aurPackages=() xinitrc=""
     grep -q hypervisor /proc/cpuinfo || packages+=(linux-firmware)
-    packages+=(base-devel htop git openssh refind reflector zsh)
+    packages+=(base-devel htop git openssh refind reflector snap-pac zsh)
 
     set_target_disk
     set_mountpoint
@@ -174,6 +174,7 @@ post_install() {
     create_user
     set_root
     prepare_pacman
+    configure_snapper
 
     # GPU must be done after pacman prep for the multilib repo
     install_video_drivers
@@ -597,6 +598,78 @@ prepare_pacman() {
     fi
 
     install_yay
+}
+
+configure_snapper() {
+    echo
+    echo "Setting up Snapper snapshots"
+    echo
+    systemctl daemon-reload
+    create_snapper_config root /
+    create_snapper_config home /home
+    mod_snapper_config root timeline-create no
+    mod_snapper_config home timeline-limit-monthly 11
+    mod_snapper_config home timeline-limit-yearly 3
+
+    echo -n "[snap-pac] Enabling 'important' flag on Pacman snapshots... "
+    if $DRY_RUN; then
+        log "sed -ie 's/^#\(\[root]\|important_\)/\/g' \"${rootMount}/etc/snap-pac.ini\""
+    else
+        sed -i -e 's/^#\(\[root]\|important_\)/\1/g' "${rootMount}/etc/snap-pac.ini" && echo "Done!"
+    fi
+}
+
+create_snapper_config() {
+    local shortpath="$2/.snapshots" snapsub subvol="${2//\//@}/.snapshots"
+    shortpath="${shortpath//\/\//\/}"
+    snapsub="${rootMount}${shortpath}"
+
+    echo -n "[$1] Unmounting ${snapsub}... "
+    if $DRY_RUN; then
+        log "umount \"${snapsub}\" && rm -d \"${snapsub}\""
+    else
+        umount "$snapsub" && rm -d "$snapsub" && echo "Done!"
+    fi
+
+    echo -n "[$1] Creating config... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" /usr/bin/env LC_ALL=C snapper --no-dbus -c \"$1\" create-config \"$2\""
+    else
+        arch-chroot "${rootMount}" /usr/bin/env LC_ALL=C snapper --no-dbus -c "$1" create-config "$2" && echo "Done!"
+    fi
+
+    echo -n "[$1] Removing snapper's $subvol subvolume... "
+    if $DRY_RUN; then
+        log "btrfs -q subvolume delete -c \"$snapsub\""
+    else
+        btrfs -q subvolume delete -c "$snapsub" && echo "Done!"
+    fi
+
+    echo -n "[$1] Re-creating ${snapsub} dir... "
+    if $DRY_RUN; then
+        log "mkdir \"$snapsub\""
+    else
+        mkdir "$snapsub" && echo "Done!"
+    fi
+
+    echo -n "[$1] Mounting custom @snapshots/$1 subvolume... "
+    if $DRY_RUN; then
+        log "arch-chroot \"${rootMount}\" mount \"$shortpath\" && echo \"Done!\""
+    else
+        arch-chroot "${rootMount}" mount "$shortpath" && echo "Done!"
+    fi
+}
+
+mod_snapper_config() {
+    local config=$1 option=${2//-/_} value=$3
+    option=${option^^}
+
+    echo -n "[$1] Setting option $option to $value... "
+    if $DRY_RUN; then
+        log "sed -i -e \"s/^${option}=.*/${option}=\\\"$value\\\"/\" \"$rootMount/etc/snapper/configs/$config\""
+    else
+        sed -i -e "s/^${option}=.*/${option}=\"$value\"/" "$rootMount/etc/snapper/configs/$config" && echo "Done!"
+    fi
 }
 
 install_refind() {
