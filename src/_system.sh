@@ -191,7 +191,7 @@ create_firstboot_scripts() {
     if [[ -n "${aurPackages[*]}" ]]; then
         userScriptExtra+="echo 'Some core packages are only available in the AUR.'\n"
         userScriptExtra+="echo 'Installing them now with yay...'\n"
-        userScriptExtra+="yay --noconfirm --removemake -S --needed ${aurPackages[*]}\n"
+        userScriptExtra+="yay --batchinstall --noconfirm --removemake --sudoloop -S --needed ${aurPackages[*]}\n"
     fi
 
     rootScript=$(cat <<EOF
@@ -335,9 +335,9 @@ install_video_drivers() {
 
     echo -e "\nInstalling GPU packages (${packages[*]// /, })..."
     if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" pacman -Sy --noconfirm \"${packages[*]}\""
+        log "arch-chroot \"${rootMount}\" pacman -Sy --noconfirm --needed \"${packages[*]}\""
     else
-        arch-chroot "${rootMount}" pacman -Sy --noconfirm "${packages[@]}"
+        arch-chroot "${rootMount}" pacman -Sy --noconfirm --needed "${packages[@]}"
     fi
 
     echo -e "\nDone!\n\n"
