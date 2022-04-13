@@ -12,7 +12,7 @@ install_arch() {
             4)
                 set_hostname ;;
             5)
-                set_username ;;
+                set_user ;;
             i)
                 check_root_pass
                 perform_install
@@ -197,9 +197,6 @@ create_firstboot_scripts() {
     rootScript=$(cat <<EOF
 $(firstboot_header root 1 2 "$systemUser")
 echo "Waiting for a bit for other tasks to finish..." && sleep 5
-echo "Before continuing, you'll need to set your password."
-echo
-passwd "\$DASHIT_USER"
 echo
 echo "Enabling sticky boot messages on all TTYs..."
 mkdir -p /etc/systemd/system/getty@.service.d
@@ -478,6 +475,13 @@ create_user() {
         arch-chroot "${rootMount}" useradd -mUG $groups "${systemUser}" && echo "Done"
     fi
 
+    echo -n "Setting password for ${systemUser}... "
+    if $DRY_RUN; then
+        log "echo \"${systemUser}:*******\" | chpasswd --root \"$rootMount\""
+    else
+        echo "${systemUser}:${systemUserPass}" | chpasswd --root "$rootMount"
+    fi
+
     echo -n "Cloning dotfiles... "
     branch="${DASHIT_DOTFILES_BRANCH:-master}"
     clonePath="/home/${systemUser}/${DASHIT_DOTFILES_DIR:-.files}"
@@ -497,13 +501,6 @@ create_user() {
         log "echo \"${systemUser} ALL=(ALL) ALL\" > \"${rootMount}/etc/sudoers.d/${systemUser}\""
     else
         echo "${systemUser} ALL=(ALL) ALL" > "${rootMount}/etc/sudoers.d/${systemUser}" && echo "Done"
-    fi
-
-    echo "Forcing password reset for ${systemUser}... "
-    if $DRY_RUN; then
-        log "arch-chroot \"${rootMount}\" passwd -qde \"${systemUser}\""
-    else
-        arch-chroot "${rootMount}" passwd -qde "${systemUser}" && echo "Done"
     fi
 }
 
@@ -879,13 +876,23 @@ set_hostname() {
     systemHostname="${hostnameAnswer}"
 }
 
-set_username() {
-    local usernameAnswer
+set_user() {
+    local confirmed usernameAnswer passAnswer
     while [ -z "$usernameAnswer" ]; do
         echo
         read -rp "Enter a new username: " usernameAnswer
     done
+    while [[ -z $passAnswer || $passAnswer != "$confirmed" ]]; do
+        confirmed="" passAnswer=""
+        read -rsp "Enter a new password for $usernameAnswer: " passAnswer
+        echo
+        if [[ -n $passAnswer ]]; then
+            read -rsp "Confirm the password for $usernameAnswer: " confirmed
+            [[ $passAnswer == "$confirmed" ]] || err "Passwords don't match!"
+        fi
+    done
     systemUser="${usernameAnswer}"
+    systemUserPass="${passAnswer}"
 }
 
 set_initramfs_package() {
