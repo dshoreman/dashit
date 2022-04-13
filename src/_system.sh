@@ -203,16 +203,16 @@ passwd "\$DASHIT_USER"
 echo
 echo "Enabling sticky boot messages on all TTYs..."
 mkdir -p /etc/systemd/system/getty@.service.d
-echo -e "[Service]\\nTTYVTDisallocate=no" > /etc/systemd/system/getty@.service.d/noclear.conf
+echo -e "[Service]\\\nTTYVTDisallocate=no" > /etc/systemd/system/getty@.service.d/noclear.conf
 echo
 echo "Enabling numlock on boot..."
-echo -e "[Service]\\nExecStartPre=/bin/sh -c 'setleds -D +num < /dev/%I'" \
+echo -e "[Service]\\\nExecStartPre=/bin/sh -c 'setleds -D +num < /dev/%I'" \
     > /etc/systemd/system/getty@.service.d/activate-numlock.conf
 systemctl daemon-reload
 echo -n "Checking for a first-boot root script in your dotfiles... "
 fbRoot="\$DOTFILES_PATH/dashit/firstboot.root.bash"
 if [[ -f "\$fbRoot" ]]; then
-    echo -e "Success!\\nRunning custom script...\\n\\n"
+    echo -e "Success!\\\nRunning custom script...\\\n\\\n"
     bash "\$DOTFILES_PATH/dashit/firstboot.root.bash"
 else echo "None found."; fi
 EOF
@@ -223,28 +223,22 @@ echo
 echo -n "Checking for a first-boot user script in your dotfiles... "
 fbRoot="\$DOTFILES_PATH/dashit/firstboot.user.bash"
 if [[ -f "\$fbRoot" ]]; then
-    echo -e "Success!\\nRunning custom script...\\n\\n"
+    echo -e "Success!\\\nRunning custom script...\\\n\\\n"
     bash "\$DOTFILES_PATH/dashit/firstboot.user.bash"
 else echo "None found."; fi
 echo
 echo "Checking for an xinit rc file in your home directory..."
 ${xinitCmd}
-echo -e "\\n\\n\\n\\n\\n"
+echo -e "\\\n\\\n\\\n\\\n\\\n Setup complete!\\\n\\\n\\\n"
+echo -e " Full logs are saved in /var/log/dashit and can be replayed with scriptreplay:\\\n\\\n"
 cat <<EOTXT
- Setup complete!
-
-
- Full logs are saved in /var/log/dashit and can be replayed with scriptreplay:
-
    for log in install firstboot.user firstboot.root; do
      scriptreplay -T /var/log/dashit/\${log}{t,}
    done
-
-
- Note: You'll be switched over to TTY1 when you continue.
-       You can get back here by switching to TTY4.
 EOTXT
-read -rsn1 -p \$'\\n\\n\\nPress any key to continue...\\n'
+echo -e "\\\n\\\n Note: You'll be switched over to TTY1 when you continue."
+echo "       You can get back here by switching to TTY4."
+read -rsn1 -p \$'\\\n\\\n\\\nPress any key to continue...\\\n'
 sudo systemctl disable dashit.first-boot.user.service
 sudo systemctl disable dashit.first-boot.root.service
 sudo chvt 1
