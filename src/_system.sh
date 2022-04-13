@@ -245,6 +245,8 @@ cat <<EOTXT
        You can get back here by switching to TTY4.
 EOTXT
 read -rsn1 -p \$'\\n\\n\\nPress any key to continue...\\n'
+sudo systemctl disable dashit.first-boot.user.service
+sudo systemctl disable dashit.first-boot.root.service
 sudo chvt 1
 EOF
     ); rootService=$(cat <<EOF
