@@ -600,7 +600,9 @@ configure_snapper() {
     systemctl daemon-reload
     create_snapper_config root /
     create_snapper_config home /home
+    mod_snapper_config root allow-users "$systemUser"
     mod_snapper_config root timeline-create no
+    mod_snapper_config home allow-users "$systemUser"
     mod_snapper_config home timeline-limit-monthly 11
     mod_snapper_config home timeline-limit-yearly 3
 
@@ -650,6 +652,13 @@ create_snapper_config() {
         log "arch-chroot \"${rootMount}\" mount \"$shortpath\" && echo \"Done!\""
     else
         arch-chroot "${rootMount}" mount "$shortpath" && echo "Done!"
+    fi
+
+    echo -n "[$1] Setting group and permissions... "
+    if $DRY_RUN; then
+        log "chmod 750 \"$snapsub\" && chown :wheel \"$snapsub\""
+    else
+        chmod 750 "$snapsub" && chown :wheel "$snapsub"
     fi
 }
 
