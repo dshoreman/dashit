@@ -178,7 +178,15 @@ post_install() {
 
     # GPU must be done after pacman prep for the multilib repo
     install_video_drivers
+    if [[ -n $DASHIT_SIZE_SWAP ]]; then
+        enable_hibernation
+    fi
     install_refind
+    if $DRY_RUN; then
+        log "arch-chroot \"$rootMount\" mkinitcpio -P"
+    else
+        arch-chroot "$rootMount" mkinitcpio -P
+    fi
 }
 
 create_firstboot_scripts() {
@@ -341,6 +349,15 @@ install_video_drivers() {
     fi
 
     echo -e "\nDone!\n\n"
+}
+
+enable_hibernation() {
+    echo "Adding resume hook to mkinitcpio.conf..."
+    if $DRY_RUN; then
+        log "sed -i -e \"s/^MODULES=(/MODULES=(${kmsModule}/\" \"${rootMount}/etc/mkinitcpio.conf\""
+    else
+        sed -i -e 's/fsck)$/resume fsck)/' "${rootMount}/etc/mkinitcpio.conf" && echo "Done!"
+    fi
 }
 
 generate_fstab() {
@@ -703,8 +720,10 @@ install_refind() {
         rootFlags="${rootFlags} initrd=boot\\${cpuPackage}.img"
     fi
 
+    (( DASHIT_SIZE_SWAP > 0 )) && resume=" resume='PARTLABEL=swap'" || resume=""
+
     bootConf=$(cat <<EOF
-"Boot using default options"     "${rootFlags} initrd=boot\initramfs-%v.img audit=off"
+"Boot using default options"     "${rootFlags} initrd=boot\initramfs-%v.img audit=off$resume"
 "Boot using fallback initramfs"  "${rootFlags} initrd=boot\initramfs-%v-fallback.img"
 "Boot to terminal"               "${rootFlags} initrd=boot\initramfs-%v.img systemd.unit-multi-user.target"
 EOF

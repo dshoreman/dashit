@@ -12,6 +12,8 @@ provision_disk() {
 }
 
 set_target_disk() {
+    local partnum
+
     if $debug && [ -b "$targetDevice" ]; then
         log "Target disk already set to ${targetDevice}"
     fi
@@ -29,17 +31,18 @@ set_target_disk() {
         read -rp "Enter target device path: " targetDevice
     done
 
+    (( DASHIT_SIZE_SWAP > 0 )) && partnum=3 || partnum=2
     if [[ "${targetDevice}" =~ ^/dev/nvme.* ]]; then
-        dataPartition="${targetDevice}p2"
+        dataPartition="${targetDevice}p$partnum"
         efiPartition="${targetDevice}p1"
     else
-        dataPartition="${targetDevice}2"
+        dataPartition="${targetDevice}$partnum"
         efiPartition="${targetDevice}1"
     fi
 }
 
 partition_disk() {
-    local efiSize=267 sgdisk=sgdisk
+    local efiSize=${DASHIT_SIZE_ESP:-267} partitions partnum=2 sgdisk=sgdisk
 
     print_partition_layout
     prompt_before_erase
@@ -51,12 +54,17 @@ partition_disk() {
     fi
 
     # TODO: To support ARM/ARM64 the 8304 typecode needs to be variable!
-    $sgdisk --clear -g \
-        -n 1:0:+${efiSize}M -t 1:ef00 -c 1:esp \
-        -N 2 -t 2:8304 -c 2:arch \
-        --print "$targetDevice"
+    partitions=(-n 1:0:"+${efiSize}M" -t 1:ef00 -c 1:esp)
+    if (( DASHIT_SIZE_SWAP > 0 )); then
+        partitions+=(-n 2:0:"+${DASHIT_SIZE_SWAP}G" -t 2:8200 -c 2:swap)
+        partnum=3
+    fi
+    partitions+=(-N "$partnum" -t "$partnum":8304 -c "$partnum":arch)
+
+    $sgdisk --clear -g "${partitions[@]}" --print "$targetDevice"
 
     echo "Disk partitioned successfully!"
+    echo "Pausing for effect..." && sleep 10
     echo
 }
 
@@ -86,6 +94,15 @@ format_partition() {
         mkfs.fat -F32 "${efiPartition}" && echo "Done"
     fi
     echo
+
+    if (( DASHIT_SIZE_SWAP > 0 )); then
+        echo "Setting up swap space..."
+        if $DRY_RUN; then
+            log "mkswap \"${targetDevice}p2\""
+        else
+            mkswap "${targetDevice}p2"
+        fi
+    fi
 
     echo "Formatting system data partition..."
     if $DRY_RUN; then
