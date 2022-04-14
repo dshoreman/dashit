@@ -612,6 +612,15 @@ configure_snapper() {
     else
         sed -i -e 's/^#\(\[root]\|important_\)/\1/g' "${rootMount}/etc/snap-pac.ini" && echo "Done!"
     fi
+
+    echo "[snapper] Enabling timers..."
+    if $DRY_RUN; then
+        log "arch-chroot \"$rootMount\" systemctl enable snapper-cleanup.timer"
+        log "arch-chroot \"$rootMount\" systemctl enable snapper-timeline.timer"
+    else
+        arch-chroot "$rootMount" systemctl enable snapper-cleanup.timer
+        arch-chroot "$rootMount" systemctl enable snapper-timeline.timer
+    fi
 }
 
 create_snapper_config() {
