@@ -75,6 +75,10 @@ perform_install() {
     if [ -n "$DASHIT_EXTRA_EXTRACTORS" ]; then
         packages+=(p7zip unrar unzip)
     fi
+    case ${DASHIT_AUDIO_BACKEND,,} in
+        pipewire) packages+=(pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber) ;;
+        pulse) packages+=(pulseaudio pulseaudio-alsa) ;;
+    esac
     if [ -n "$DASHIT_ENVIRONMENTS" ]; then
         for env_name in ${DASHIT_ENVIRONMENTS//,/ }; do case $env_name in
             i3)
@@ -175,6 +179,18 @@ post_install() {
     set_root
     prepare_pacman
     configure_snapper
+
+    if $DRY_RUN; then
+        case ${DASHIT_AUDIO_BACKEND,,} in
+            pipewire) log "arch-chroot \"$rootMount\" pacman -Sy --noconfirm --needed lib32-pipewire lib32-pipewire-jack" ;;
+            pulse) log "arch-chroot \"$rootMount\" pacman -Sy --noconfirm --needed lib32-libpulse lib32-alsa-plugins" ;;
+        esac
+    else
+        case ${DASHIT_AUDIO_BACKEND,,} in
+            pipewire) arch-chroot "$rootMount" pacman -Sy --noconfirm --needed lib32-pipewire lib32-pipewire-jack ;;
+            pulse) arch-chroot "$rootMount" pacman -Sy --noconfirm --needed lib32-libpulse lib32-alsa-plugins ;;
+        esac
+    fi
 
     # GPU must be done after pacman prep for the multilib repo
     install_video_drivers
